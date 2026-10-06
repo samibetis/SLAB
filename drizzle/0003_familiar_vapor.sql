@@ -1,0 +1,1 @@
+ALTER TABLE "cards" ADD COLUMN "detail_version" integer DEFAULT 1 NOT NULL;

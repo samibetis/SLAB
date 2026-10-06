@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Tokens. Los mismos colores claro/oscuro del proyecto; Tailwind los usa a través
+   de @theme (bg-panel, text-muted, border-line...), así cambian solos con el tema.
+--------------------------------------------------------------------------- */
+:root {
+  --bg: #e8ecf0; --panel: #ffffff; --ink: #13171c; --muted: #56606c; --line: #d4dae1; --soft: #f2f4f7;
+  --accent: #d0313a; --up: #1e8a6e; --down: #b0541f;
+  --g-raw: #9aa3ad; --g-7: #7ca4c6; --g-8: #3b79ae; --g-9: #1b4a79; --g-10: #d0313a;
+  --stage-a: #fbfcfd; --stage-b: #d3dae3; --slab-edge: #13171c; --slab-shell: 0.32;
+  --shadow-tint: 19 23 28;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161c; --panel: #1a2029; --ink: #e7ebf0; --muted: #98a2ae; --line: #2b333e; --soft: #222934;
+    --accent: #f0525a; --up: #3cc29a; --down: #f08a4b;
+    --g-raw: #6f7a86; --g-7: #4d7ead; --g-8: #6ea3d5; --g-9: #b3d2ef; --g-10: #f0525a;
+    --stage-a: #2a3442; --stage-b: #12161c; --slab-edge: #e7ebf0; --slab-shell: 0.07;
+    --shadow-tint: 0 0 0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161c; --panel: #1a2029; --ink: #e7ebf0; --muted: #98a2ae; --line: #2b333e; --soft: #222934;
+  --accent: #f0525a; --up: #3cc29a; --down: #f08a4b;
+  --g-raw: #6f7a86; --g-7: #4d7ead; --g-8: #6ea3d5; --g-9: #b3d2ef; --g-10: #f0525a;
+  --stage-a: #2a3442; --stage-b: #12161c; --slab-edge: #e7ebf0; --slab-shell: 0.07;
+  --shadow-tint: 0 0 0;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-g-raw: var(--g-raw);
+  --color-g-7: var(--g-7);
+  --color-g-8: var(--g-8);
+  --color-g-9: var(--g-9);
+  --color-g-10: var(--g-10);
+  --font-sans: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Compatibilidad: algunos módulos CSS siguen usando estos nombres mientras se migran. */
+:root {
+  --font: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --wrap: 1400px;
+  --gut: clamp(16px, 4vw, 40px);
+}
+
+@layer base {
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 15px/1.5 var(--font);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* superficies del navegador: selección, cursor de texto y barras de scroll con la paleta */
+  ::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
+  input, textarea { caret-color: var(--accent); }
+  html { scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent; scrollbar-width: thin; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button { cursor: pointer; }
+  /* selects nativos de las secciones aún sin migrar (las utilidades de Tailwind lo sobrescriben) */
+  select { font-size: 13.5px; font-weight: 600; background: var(--panel); border: 1.5px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+  select:disabled { opacity: 0.45; cursor: default; }
+  button:disabled { cursor: default; }
+  h2 { font-size: clamp(28px, 3.6vw, 46px); font-weight: 780; font-stretch: 118%; line-height: 1.02; letter-spacing: -0.025em; }
+  h3 { font-size: 15.5px; font-weight: 680; margin: 0 0 8px; }
+}
+
+@layer components {
+  /* Esqueleto de carga con brillo que recorre la pieza */
+  .skeleton {
+    background: linear-gradient(90deg, var(--soft) 0%, color-mix(in srgb, var(--soft) 55%, var(--panel)) 50%, var(--soft) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+  /* Punto "vivo" que respira (fuente de datos, estado) */
+  .live-dot { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+  .live-dot::after {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; background: currentColor;
+    animation: breathe 2.4s ease-out infinite;
+  }
+  @keyframes breathe { 0% { transform: scale(1); opacity: 0.55; } 100% { transform: scale(2.6); opacity: 0; } }
+
+  /* Utilidades heredadas, aún usadas por secciones sin migrar */
+  .vh { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .chk { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; cursor: pointer; }
+  .chk input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+  .chip { font-size: 13.5px; font-weight: 600; background: var(--panel); border: 1.5px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+  .linkbtn { font-size: 13px; font-weight: 650; background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--ink); }
+  .btn { font-weight: 650; font-size: 14.5px; background: var(--ink); color: var(--panel); border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; min-height: 44px; white-space: nowrap; }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+  .empty { color: var(--muted); padding: 56px 12px; text-align: center; margin: 0; }
+  .up { color: var(--up) !important; }
+  .down { color: var(--down) !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .skeleton, .live-dot::after { animation: none; }
+}
+
+/* entrada de las ventanas modales (Dialog) */
+@keyframes dialog-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ---- Slabs del portafolio: revelado de la nota, destello y reparto ----
+   Todo parte de un estado final visible: si la animación no corre, la funda se ve entera.
+   --d es el retraso de cada funda (lo pone SlabThumb). */
+@keyframes slab-cover {
+  0%, 30% { clip-path: inset(0 0 0 0); }
+  100% { clip-path: inset(0 0 0 100%); }
+}
+/* tapa mate sobre la etiqueta (como en los vídeos de revelado de PSA), se retira de izquierda a derecha */
+.slab-cover {
+  background: linear-gradient(100deg, color-mix(in srgb, var(--ink) 92%, var(--panel)), var(--ink) 60%);
+  animation: slab-cover 680ms cubic-bezier(0.65, 0, 0.35, 1) var(--d, 0ms) both;
+}
+@keyframes slab-grade { from { opacity: 0; filter: blur(3px); transform: scale(0.78); } }
+.slab-grade-in { display: inline-block; animation: slab-grade 560ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--d, 0ms) + 420ms) backwards; }
+@keyframes slab-sheen {
+  from { transform: translateX(-140%) skewX(-18deg); }
+  to { transform: translateX(300%) skewX(-18deg); }
+}
+.slab-sheen {
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55) 50%, transparent);
+  animation: slab-sheen 950ms cubic-bezier(0.4, 0, 0.2, 1) calc(var(--d, 0ms) + 620ms) both;
+}
+/* brillo del plástico que sigue al puntero (vitrina) */
+.slab-glare {
+  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 0%), rgb(255 255 255 / 0.42), rgb(255 255 255 / 0.06) 38%, transparent 62%);
+  opacity: var(--glare, 0);
+  transition: opacity 300ms ease-out;
+}
+/* reparto: la funda llega desde abajo, ligeramente girada */
+@keyframes slab-deal { from { opacity: 0; transform: translateY(56px) rotate(var(--deal-r, 0deg)) scale(0.94); } }
+.slab-deal { animation: slab-deal 820ms cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0ms) backwards; }
+/* vitrina: abanico que se abre al pasar el ratón o al enfocar con teclado */
+.showcase-slot {
+  transform: translate(-50%, -50%) translateX(var(--x)) rotate(var(--r));
+  transition: transform 640ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.showcase:hover .showcase-slot, .showcase:focus-within .showcase-slot {
+  transform: translate(-50%, -50%) translateX(var(--xo)) rotate(var(--ro));
+}
+/* gráfica del portafolio: la línea de valor se dibuja y el área aparece detrás */
+@keyframes chart-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.chart-draw { stroke-dasharray: 1; animation: chart-draw 1100ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes fade-in { from { opacity: 0; } }
+.chart-fill { animation: fade-in 700ms ease-out 300ms backwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* sin desplazamientos: la nota aparece sin tapa ni destello y el reparto es solo un fundido */
+  .slab-cover, .slab-sheen { display: none; }
+  .slab-grade-in, .chart-draw { animation: none; }
+  .slab-deal { animation-name: fade-in; animation-duration: 300ms; }
+  .showcase-slot { transition: none; }
+  .showcase:hover .showcase-slot, .showcase:focus-within .showcase-slot { transform: translate(-50%, -50%) translateX(var(--x)) rotate(var(--r)); }
+}
