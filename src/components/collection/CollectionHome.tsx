@@ -215,15 +215,23 @@ function AlbumCover({ album }: { album: Album }) {
   return (
     <Link
       href={`/coleccion/${album.id}`}
-      className="group relative flex h-[188px] overflow-hidden rounded-2xl bg-panel transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:scale-[0.99]"
+      // altura mínima, no fija: si el nombre ocupa dos líneas la tapa crece en vez de pisar el progreso
+      className="group relative flex min-h-[188px] overflow-hidden rounded-2xl bg-panel transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:scale-[0.99]"
     >
       <span aria-hidden className="w-3 flex-none bg-ink" />
-      <div className="flex min-w-0 flex-1 flex-col p-5">
-        <span className="text-[12px] font-semibold uppercase tracking-[0.06em] text-muted">
-          {album.kind === "master" ? t.presets[presetOf(album.tracking)].name : t.free}
-          {album.set?.code ? ` · ${album.set.code}` : ""}
-        </span>
-        <b className="mt-1 line-clamp-2 text-[19px] font-bold leading-tight tracking-[-0.015em]">{album.name}</b>
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-5">
+        <div className="min-w-0">
+          {/* tipo en una sola línea (recortado si no cabe; completo al pasar el ratón) */}
+          <span
+            className="block truncate text-[12px] font-semibold uppercase tracking-[0.06em] text-muted"
+            title={album.kind === "master" ? t.presets[presetOf(album.tracking)].name : t.free}
+          >
+            {[album.set?.code, album.kind === "master" ? t.presets[presetOf(album.tracking)].name : t.free].filter(Boolean).join(" · ")}
+          </span>
+          <b className="mt-1 line-clamp-3 text-balance text-[18px] font-bold leading-tight tracking-[-0.015em]" title={album.name}>
+            {album.name}
+          </b>
+        </div>
         <div className="mt-auto">
           {album.kind === "master" && total ? (
             <>

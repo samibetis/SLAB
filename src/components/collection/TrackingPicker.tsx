@@ -11,7 +11,7 @@ export function TrackingPicker({ value, onChange, compact = false }: { value: Pr
   return (
     <fieldset>
       <legend className={compact ? "vh" : "mb-2 text-[13.5px] font-semibold"}>{t.trackingLabel}</legend>
-      <div className={`grid gap-1 rounded-xl p-1 ${compact ? "grid-cols-3 bg-panel" : "grid-cols-1 bg-soft sm:grid-cols-3"}`}>
+      <div className={`grid gap-1 rounded-xl p-1 ${compact ? "grid-cols-3 bg-panel" : "grid-cols-1 bg-soft"}`}>
         {keys.map((k) => (
           <button
             key={k}
