@@ -14,6 +14,7 @@ import { portfolioStore } from "@/lib/portfolio/store";
 import type { Holding } from "@/lib/portfolio/types";
 import { money, monthLong, pct } from "@/lib/prices/format";
 import { DEFAULT_RANGE, RANGES, type RangeKey } from "@/lib/prices/ranges";
+import { BackupControls } from "../BackupControls";
 import { SupportNote } from "../SupportNote";
 import { Dialog } from "../ui/Dialog";
 import { CardPicker } from "./CardPicker";
@@ -145,6 +146,7 @@ export function PortfolioView() {
           <AddButton onClick={() => setEditing({ mode: "add", card: null })} className="mt-7" />
           <p className="mt-6 text-[13.5px] text-muted">{t.localNote}</p>
           <SupportNote compact className="mt-8" />
+          <BackupControls className="mt-8" />
         </div>
         <EmptyStack />
         {dialog}
@@ -315,6 +317,7 @@ export function PortfolioView() {
         <p>{sourceText}</p>
         <p>{t.localNote}</p>
       </div>
+      <BackupControls className="mt-8" />
       {dialog}
     </section>
     </>

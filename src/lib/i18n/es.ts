@@ -6,6 +6,20 @@ export const es = {
       "Busca cualquier carta Pokémon y compara su precio sin gradear y gradeada por PSA, BGS, CGC, SGC o TAG. Gírala en 3D y mira cómo se mueve cada grado.",
   },
   ui: { close: "Cerrar" },
+  backup: {
+    title: "Copia de seguridad",
+    hint: "Tus álbumes, tu portafolio y tus precios viven en este navegador. Descarga una copia para guardarla o para pasarla a otro navegador o a otra dirección de Slab.",
+    export: "Exportar copia",
+    import: "Importar copia",
+    exported: (a: number, h: number, p: number) => `Copia descargada: ${a} álbumes, ${h} slabs y ${p} precios.`,
+    imported: (a: number, h: number, p: number) => `Importado: ${a} álbumes, ${h} slabs y ${p} precios. Lo que ya tenías se conserva.`,
+    errors: {
+      json: "Ese archivo no se puede leer. ¿Es la copia que descargaste de Slab?",
+      kind: "Ese archivo no es una copia de Slab.",
+      version: "Esa copia es de una versión más nueva de Slab. Actualiza la página y vuelve a probar.",
+    },
+    storageError: "Este navegador no permite guardar datos (modo privado o almacenamiento bloqueado).",
+  },
   nav: {
     label: "Secciones",
     links: [

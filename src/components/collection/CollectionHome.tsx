@@ -11,6 +11,7 @@ import { browserStore } from "@/lib/collection/store";
 import type { Album } from "@/lib/collection/types";
 import { PRESETS, presetOf, type Preset } from "@/lib/collection/versions";
 import { es } from "@/lib/i18n/es";
+import { BackupControls } from "../BackupControls";
 import { TrackingPicker } from "./TrackingPicker";
 import { useAlbums } from "./useAlbums";
 
@@ -163,6 +164,7 @@ export function CollectionHome() {
           </div>
         </form>
         <p className="text-[13px] leading-relaxed text-muted">{t.localNote}</p>
+        <BackupControls />
       </div>
 
       {/* ---- Álbumes ---- */}
