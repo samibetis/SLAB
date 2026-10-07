@@ -8,14 +8,14 @@ export function SiteHeader({ current }: { current?: string }) {
       <Link href="/" className="text-2xl font-extrabold tracking-[-0.03em] [font-stretch:125%]">
         {es.footer.brand}
       </Link>
-      <nav aria-label={es.nav.label} className="flex gap-5 text-[14.5px] font-semibold sm:gap-7">
+      <nav aria-label={es.nav.label} className="flex gap-3 text-[13.5px] font-semibold sm:gap-7 sm:text-[14.5px]">
         {es.nav.links.map((l) => (
           <Link
             key={l.href}
             href={l.href}
             aria-current={current === l.key ? "page" : undefined}
             // en móvil solo quedan las páginas (las secciones de la portada se ven haciendo scroll)
-            className={`text-muted transition-colors duration-300 hover:text-ink aria-[current=page]:text-ink ${
+            className={`whitespace-nowrap text-muted transition-colors duration-300 hover:text-ink aria-[current=page]:text-ink ${
               l.href.startsWith("/#") ? "hidden sm:inline" : ""
             }`}
           >

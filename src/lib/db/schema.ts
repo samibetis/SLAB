@@ -77,3 +77,34 @@ export const sets = pgTable(
 );
 
 export type SetRow = typeof sets.$inferSelect;
+
+// Ranking de cada colección: sus cartas más caras (precio aproximado de mercado), calculado por el barrido
+// semanal (/api/cron/scan-rankings). Una fila por colección; el top va entero en `top` (ya ordenado).
+export interface RankedCard {
+  id: string; // id propio: "en-sv04.5-054"
+  externalId: string; // id de TCGdex, para abrir la carta aunque no esté en la caché
+  name: string;
+  localId: string;
+  number?: string;
+  image: string | null; // miniatura lista para usar
+  variant: string; // versión con ese precio (la más cara de la carta)
+  variantName?: string;
+  price: number;
+}
+
+export const setRankings = pgTable(
+  "set_rankings",
+  {
+    setKey: text("set_key").primaryKey(), // "en-sv04.5"
+    language: text("language").notNull(),
+    currency: text("currency").notNull(), // EN: USD (TCGplayer); JP: EUR (Cardmarket)
+    source: text("source").notNull(),
+    cardCount: integer("card_count").notNull(),
+    pricedCount: integer("priced_count").notNull(),
+    top: jsonb("top").$type<RankedCard[]>().notNull(),
+    scannedAt: timestamp("scanned_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("set_rankings_lang_idx").on(t.language, t.scannedAt)],
+);
+
+export type SetRankingRow = typeof setRankings.$inferSelect;

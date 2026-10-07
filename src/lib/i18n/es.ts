@@ -6,6 +6,34 @@ export const es = {
       "Busca cualquier carta Pokémon y compara su precio sin gradear y gradeada por PSA, BGS, CGC, SGC o TAG. Gírala en 3D y mira cómo se mueve cada grado.",
   },
   ui: { close: "Cerrar" },
+  rankings: {
+    metaTitle: "Las cartas Pokémon más caras de cada colección · Slab",
+    metaDescription:
+      "Busca cualquier colección de Pokémon TCG en inglés y mira sus 10 cartas más caras, con un precio aproximado de mercado actualizado cada semana.",
+    title: "Las cartas más caras de cada colección",
+    lead: "Busca una colección y mira sus 10 cartas más caras. Es un precio aproximado de mercado, sin gradear, que se actualiza cada semana.",
+    searchLabel: "Buscar colección",
+    searchPlaceholder: "Nombre o código: Base Set, PAF, 151…",
+    noResults: "No encuentro ninguna colección con ese nombre o código.",
+    topCard: "La más cara",
+    pending: "Calculando: vuelve en unos días",
+    count: (n: number) => `${n} ${n === 1 ? "colección" : "colecciones"}`,
+    // ficha
+    setTitle: (name: string, code: string | null) => `Las 10 cartas más caras de ${name}${code ? ` (${code})` : ""}`,
+    setMetaTitle: (name: string, code: string | null) => `Las 10 cartas más caras de ${name}${code ? ` (${code})` : ""} · Slab`,
+    setMetaDescription: (name: string, top: string | null, price: string | null) =>
+      `Ranking de las cartas más caras de la colección ${name} de Pokémon TCG${top && price ? `: la primera es ${top}, a unos ${price}` : ""}. Precio aproximado de mercado, actualizado cada semana.`,
+    setMeta: (cards: number, priced: number) => `${cards} cartas en la colección · ${priced} con precio de mercado`,
+    released: (date: string) => `Salió el ${date}`,
+    source: (label: string, date: string) =>
+      `Precio aproximado de mercado sin gradear (${label}, vía TCGdex), de la versión más cara de cada carta. Actualizado el ${date}. Orientativo: no es una tasación.`,
+    pendingTitle: "Aún estamos calculando esta colección",
+    pendingText: "El barrido de precios recorre todas las colecciones cada semana. Vuelve en unos días.",
+    empty: "Ninguna carta de esta colección tiene precio de mercado todavía.",
+    open: "Ver la carta",
+    back: "Todas las colecciones",
+    rank: (n: number) => `Número ${n}`,
+  },
   backup: {
     title: "Copia de seguridad",
     hint: "Tus álbumes, tu portafolio y tus precios viven en este navegador. Descarga una copia para guardarla o para pasarla a otro navegador o a otra dirección de Slab.",
@@ -26,6 +54,7 @@ export const es = {
       { href: "/#precios", text: "Precios", key: "precios" },
       { href: "/#fluctuacion", text: "Fluctuación", key: "fluctuacion" },
       { href: "/#como", text: "Cómo funciona", key: "como" },
+      { href: "/colecciones", text: "Top 10", key: "colecciones" },
       { href: "/escaner", text: "Escáner", key: "escaner" },
       { href: "/coleccion", text: "Colección", key: "coleccion" },
       { href: "/portafolio", text: "Portafolio", key: "portafolio" },

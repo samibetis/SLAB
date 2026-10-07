@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo } from "next/font/google";
 import { es } from "@/lib/i18n/es";
+import { SITE_URL } from "@/lib/site";
 import { MotionProvider } from "@/components/ui/MotionProvider";
 import "./globals.css";
 
@@ -13,6 +14,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: es.meta.title,
   description: es.meta.description,
 };

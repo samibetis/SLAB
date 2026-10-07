@@ -57,6 +57,7 @@ Rediseño completo en curso, siguiendo la skill de diseño frontend (variación 
 ## SEO y páginas
 
 - `/` es la landing con el buscador.
+- `/colecciones` y `/colecciones/[slug]` (hecho): las 10 cartas más caras de cada colección en inglés, para SEO. Precio aproximado de mercado sin gradear (TCGplayer vía TCGdex, versión más cara de cada carta), sin scraper. Barrido en `src/lib/rankings/` (`scan.ts`), tabla `set_rankings` (top 10 en jsonb), cron diario `/api/cron/scan-rankings` con ~4 min de trabajo: recorre las colecciones que tocan (semanal; las que salieron sin precios, diario). Páginas en servidor con ISR de 1 h, metadatos, Open Graph, datos estructurados `ItemList`, `sitemap.ts` y `robots.ts`. **Japonesas preparadas:** añadir "JP" a `RANKING_LANGUAGES` (usa EUR de Cardmarket) y su sección en la página. URL pública: `src/lib/site.ts` (`NEXT_PUBLIC_SITE_URL` o la de Vercel).
 - `/carta/[slug]` (pendiente, Hito 4): ficha renderizada en servidor con metadatos, Open Graph con la imagen de la carta y datos estructurados. Sitemap a partir de las cartas en BD.
 
 ## Legal
