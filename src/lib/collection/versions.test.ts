@@ -76,6 +76,24 @@ describe("marcar versiones", () => {
   });
 });
 
+describe("colecciones con sello en todas las cartas (30th Celebration)", () => {
+  const ANNIV = v("normal-30th-anniversary", "normal", { stamps: ["30th-anniversary"] });
+  const ANNIV_REV = v("reverse-30th-anniversary", "reverse", { stamps: ["30th-anniversary"] });
+  const ANNIV_PROMO = v("normal-30th-anniversary-prerelease", "normal", { stamps: ["30th-anniversary", "prerelease"] });
+  const X = card("1", [ANNIV, ANNIV_REV, ANNIV_PROMO]);
+  it("la versión con el sello de la colección es la base; su reverse, reverse; otro sello, especial", () => {
+    expect(baseKey(X)).toBe("normal-30th-anniversary");
+    expect(trackedVersions(X, PRESETS.reverse).map((o) => o.key)).toEqual(["normal-30th-anniversary", "reverse-30th-anniversary"]);
+    expect(trackedVersions(X, PRESETS.all)).toHaveLength(3);
+  });
+  it("lo marcado como 'standard' antes de tener las versiones cuenta como la base (caso real: 0 de 158)", () => {
+    const solo = card("2", [ANNIV]);
+    const a = album(PRESETS.all, { entries: [{ card: solo, variant: "standard", addedAt: "2026-10-01" }] });
+    expect(setProgress(a, [solo])).toMatchObject({ owned: 1, total: 1, ratio: 1 });
+    expect(toggleVersion(a, solo, "normal-30th-anniversary").entries).toEqual([]); // desmarcar la base la quita
+  });
+});
+
 describe("progreso", () => {
   const set = [A, B, C];
   it("master set completo: cuenta versiones", () => {

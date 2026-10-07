@@ -19,6 +19,7 @@ export type VersionKind = "base" | "reverse" | "special";
 
 // Base: la impresión normal o holo (unlimited incluida). Reverse: reverse holo sin nada más.
 // Especial: lleva sello o un subtipo distinto de unlimited (shadowless, 1ª edición, copyright...).
+// Esta es la clasificación "en abstracto"; dentro de una carta manda kindIn (relativa a su base).
 export function versionKind(o: VariantOption): VersionKind {
   if (o.stamps?.length || (o.subtype && o.subtype !== "unlimited")) return "special";
   return o.type === "reverse" ? "reverse" : "base";
@@ -27,25 +28,45 @@ export function versionKind(o: VariantOption): VersionKind {
 const STANDARD: VariantOption = { key: DEFAULT_VARIANT, type: "normal" };
 const optionsOf = (c: SetCard): VariantOption[] => (c.variants?.length ? c.variants : [STANDARD]);
 
+// Lo que distingue una versión aparte de si es holo/reverse: subtipo (sin "unlimited") y sellos.
+const extras = (o: VariantOption) => [o.subtype === "unlimited" ? undefined : o.subtype, ...(o.stamps ?? [])].filter(Boolean).join("-");
+
+// La versión base de la carta: la primera normal/holo sin extras; si no hay ninguna (en colecciones como
+// la 30th Celebration TODAS las cartas llevan el sello del aniversario), la primera que no sea reverse.
+function baseOption(opts: VariantOption[]): VariantOption {
+  return opts.find((o) => versionKind(o) === "base") ?? opts.find((o) => o.type !== "reverse") ?? opts[0];
+}
+
 // La versión que representa a la carta cuando no se dice cuál (entradas antiguas, "solo cartas").
 export function baseKey(c: SetCard): string {
-  const opts = optionsOf(c);
-  return (opts.find((o) => versionKind(o) === "base") ?? opts[0]).key;
+  return baseOption(optionsOf(c)).key;
+}
+
+// Tipo de una versión DENTRO de su carta: con los mismos extras que la base, normal/holo o reverse;
+// con extras distintos (otro sello, 1ª edición...), especial. Así un sello que llevan todas las cartas
+// de la colección no convierte la carta entera en "especial".
+export function kindIn(c: SetCard, o: VariantOption): VersionKind {
+  const base = baseOption(optionsOf(c));
+  if (extras(o) !== extras(base)) return "special";
+  return o.type === "reverse" ? "reverse" : "base";
 }
 
 // Versiones que cuentan para el progreso de esta carta. En "solo cartas", una: la base.
 export function trackedVersions(c: SetCard, t?: Tracking): VariantOption[] {
   const opts = optionsOf(c);
-  if (!countsVersions(t)) return [opts.find((o) => o.key === baseKey(c))!];
+  if (!countsVersions(t)) return [baseOption(opts)];
   const out = opts.filter((o) => {
-    const k = versionKind(o);
+    const k = kindIn(c, o);
     return k === "base" || (k === "reverse" && t!.reverse) || (k === "special" && t!.special);
   });
-  return out.length ? out : [opts[0]];
+  return out.length ? out : [baseOption(opts)];
 }
 
 const entriesOf = (album: Album, cardId: string) => album.entries.filter((e) => e.card.id === cardId);
-const entryKey = (e: AlbumEntry, c: SetCard) => e.variant ?? baseKey(c);
+// La versión de una entrada. Sin versión (entradas antiguas) o con una que la carta ya no tiene (p. ej.
+// "standard", si se marcó antes de que llegaran sus versiones), cuenta como la base.
+const entryKey = (e: AlbumEntry, c: SetCard) =>
+  e.variant && optionsOf(c).some((o) => o.key === e.variant) ? e.variant : baseKey(c);
 
 // Claves de las versiones que tienes de esta carta.
 export const ownedKeys = (album: Album, c: SetCard) => new Set(entriesOf(album, c.id).map((e) => entryKey(e, c)));

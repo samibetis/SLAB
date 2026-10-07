@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 import { variantLabel } from "@/lib/cards/format";
 import { cardHref, cardImage } from "@/lib/collection/logic";
 import type { AlbumCard, AlbumEntry, SetCard } from "@/lib/collection/types";
-import { versionKind, type CardStatus } from "@/lib/collection/versions";
+import type { CardStatus } from "@/lib/collection/versions";
 import { es } from "@/lib/i18n/es";
 
 // Bolsillos de la carpeta. Funda de plástico con la carta; las reverse llevan el brillo de su foil.
@@ -130,7 +130,7 @@ export function MasterPocket({
               {status.tracked.map((o) => (
                 <span
                   key={o.key}
-                  className={`size-[clamp(4px,1.2cqw,7px)] rounded-full ${status.owned.has(o.key) ? (versionKind(o) === "reverse" ? "bg-[linear-gradient(135deg,#ff6fd8,#7af5ff,#fff38a)]" : "bg-ink") : "ring-1 ring-inset ring-ink/35"}`}
+                  className={`size-[clamp(4px,1.2cqw,7px)] rounded-full ${status.owned.has(o.key) ? (o.type === "reverse" ? "bg-[linear-gradient(135deg,#ff6fd8,#7af5ff,#fff38a)]" : "bg-ink") : "ring-1 ring-inset ring-ink/35"}`}
                 />
               ))}
             </span>
