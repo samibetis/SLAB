@@ -3,7 +3,7 @@
 .tile{text-align:left;background:var(--soft);border:0;border-radius:12px;padding:12px 14px 13px;cursor:pointer;transition:opacity .15s}
 .tile span{display:block}
 .tile[aria-pressed="false"]{opacity:.42}
-.lbl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:650}
+.tile .lbl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:650}
 .pr{font-size:clamp(17px,1.8vw,24px);font-weight:720;font-stretch:106%;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ch{font-size:12.5px;color:var(--muted);min-height:1.5em}
 
