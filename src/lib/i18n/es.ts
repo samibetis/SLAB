@@ -58,10 +58,16 @@ export const es = {
   },
   nav: {
     label: "Secciones",
+    // secciones de la portada, agrupadas en un solo menú
+    home: {
+      text: "Precios",
+      links: [
+        { href: "/#precios", text: "Precio por nota" },
+        { href: "/#fluctuacion", text: "Fluctuación" },
+        { href: "/#como", text: "Cómo funciona" },
+      ],
+    },
     links: [
-      { href: "/#precios", text: "Precios", key: "precios" },
-      { href: "/#fluctuacion", text: "Fluctuación", key: "fluctuacion" },
-      { href: "/#como", text: "Cómo funciona", key: "como" },
       { href: "/colecciones", text: "Top 10", key: "colecciones" },
       { href: "/escaner", text: "Escáner", key: "escaner" },
       { href: "/coleccion", text: "Colección", key: "coleccion" },
