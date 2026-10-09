@@ -14,6 +14,14 @@ export const RANKING_CURRENCY: Record<CardLanguage, { currency: string; source: 
   JP: { currency: "EUR", source: "cardmarket", label: "Cardmarket" },
 };
 
+// Imagen grande a partir de la miniatura guardada (TCGdex low -> high; pokemontcg/scrydex small -> large).
+export const bigImage = (url: string | null) =>
+  url ? url.replace(/\/low\.webp$/, "/high.webp").replace(/\/small$/, "/large") : null;
+
+// Ficha completa de una carta del ranking (portada con visor, precios y versiones), con su versión puesta
+export const rankedCardHref = (c: { id: string; externalId: string; variant: string }, lang: string) =>
+  `/?card=${encodeURIComponent(c.id)}&ext=${encodeURIComponent(c.externalId)}&lang=${lang}&variant=${encodeURIComponent(c.variant)}`;
+
 // Cada cuánto se vuelve a barrer una colección
 export const RESCAN_DAYS = 7;
 

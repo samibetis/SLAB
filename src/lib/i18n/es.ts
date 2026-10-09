@@ -6,6 +6,13 @@ export const es = {
       "Busca cualquier carta Pokémon y compara su precio sin gradear y gradeada por PSA, BGS, CGC, SGC o TAG. Gírala en 3D y mira cómo se mueve cada grado.",
   },
   ui: { close: "Cerrar" },
+  lightbox: {
+    label: "Carta",
+    prev: "Carta anterior",
+    next: "Carta siguiente",
+    full: "Precios y versiones",
+    hint: "Arrastra para girarla. Pulsa fuera, la X o Escape para volver a la lista.",
+  },
   rankings: {
     metaTitle: "Las cartas Pokémon más caras de cada colección · Slab",
     metaDescription:

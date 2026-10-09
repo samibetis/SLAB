@@ -51,6 +51,4 @@ export async function rankingBySlug(slug: string): Promise<{ set: SetInfo; slug:
   return { set, slug, ranking: await getRanking(set.key).catch(() => null) };
 }
 
-// Imagen grande a partir de la miniatura guardada (TCGdex low -> high; pokemontcg/scrydex small -> large).
-export const bigImage = (url: string | null) =>
-  url ? url.replace(/\/low\.webp$/, "/high.webp").replace(/\/small$/, "/large") : null;
+export { bigImage } from "./logic";
