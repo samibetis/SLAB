@@ -186,9 +186,10 @@ export function seriesRequests(holdings: Holding[]) {
   return [...m.values()];
 }
 
-// "1.234,50", "1234.50", "$ 90" -> número. Si aparecen punto y coma, el último es el decimal; una coma
-// sola es decimal (formato español); un punto seguido de exactamente tres cifras, separador de miles.
-export function parseAmount(text: string): number | null {
+// "1.234,50", "1234.50", "$ 90" -> número. Si aparecen punto y coma, el último es el decimal. Con un solo
+// signo depende del idioma: en español la coma es decimal y "1.500" son miles; en inglés, al revés
+// ("1,500" son miles y "12,5" se lee como decimal porque no son tres cifras).
+export function parseAmount(text: string, lang: "es" | "en" = "es"): number | null {
   let s = text.replace(/[^\d.,]/g, "");
   if (!s) return null;
   const lastDot = s.lastIndexOf(".");
@@ -196,9 +197,11 @@ export function parseAmount(text: string): number | null {
   if (lastDot >= 0 && lastComma >= 0) {
     const dec = lastDot > lastComma ? "." : ",";
     s = s.replace(dec === "." ? /,/g : /\./g, "").replace(",", ".");
+  } else if (lang === "en" && /^\d{1,3}(,\d{3})+$/.test(s)) {
+    s = s.replace(/,/g, "");
   } else if (lastComma >= 0) {
     s = s.replace(/,(?=.*,)/g, "").replace(",", ".");
-  } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+  } else if (lang === "es" && /^\d{1,3}(\.\d{3})+$/.test(s)) {
     s = s.replace(/\./g, "");
   }
   const n = Number(s);

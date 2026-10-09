@@ -1,11 +1,14 @@
+"use client";
+
 import { ArrowUpRightIcon, HeartIcon } from "@phosphor-icons/react/dist/ssr";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { donateLink } from "@/lib/support";
 
 // Por qué los precios por nota los pone el usuario (no hay dinero para la API de pago) y cómo apoyar el
 // proyecto. Sale en la ficha de precios y en el portafolio. `compact`: versión corta en una línea.
 export function SupportNote({ compact = false, className = "" }: { compact?: boolean; className?: string }) {
-  const t = es.support;
+  const { t: dict } = useI18n();
+  const t = dict.support;
   if (process.env.NEXT_PUBLIC_PAID_PRICES === "1") return null;
   const link = donateLink();
   const button = link ? (

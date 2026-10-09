@@ -1,4 +1,4 @@
-import { es } from "@/lib/i18n/es";
+import { getI18n } from "@/lib/i18n/server";
 import { AnalysisPanel } from "./prices/AnalysisPanel";
 import { CsvButton } from "./prices/CsvButton";
 import { ManualPrices } from "./prices/ManualPrices";
@@ -17,8 +17,8 @@ export function PricesSection() {
   );
 }
 
-export function AnalysisSection() {
-  const t = es.analysis;
+export async function AnalysisSection() {
+  const t = (await getI18n()).t.analysis;
   return (
     <section className={s.card} id="fluctuacion">
       <h2>{t.title}</h2>
@@ -28,8 +28,8 @@ export function AnalysisSection() {
   );
 }
 
-export function HowSection() {
-  const t = es.how;
+export async function HowSection() {
+  const t = (await getI18n()).t.how;
   return (
     <section className={s.card} id="como">
       <h2>{t.title}</h2>

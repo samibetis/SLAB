@@ -149,6 +149,12 @@ describe("parseAmount", () => {
     expect(parseAmount("$ 90")).toBe(90);
     expect(parseAmount("1.500")).toBe(1500);
     expect(parseAmount("12.5")).toBe(12.5);
+    // en inglés la coma con tres cifras es de miles y el punto siempre decimal
+    expect(parseAmount("1,500", "en")).toBe(1500);
+    expect(parseAmount("1,234,567", "en")).toBe(1234567);
+    expect(parseAmount("1.500", "en")).toBe(1.5);
+    expect(parseAmount("12,5", "en")).toBe(12.5);
+    expect(parseAmount("1,234.50", "en")).toBe(1234.5);
   });
   it("null si no hay número", () => {
     expect(parseAmount("")).toBeNull();

@@ -2,9 +2,8 @@
 
 import type { CSSProperties } from "react";
 import { useCard } from "../CardContext";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { lastValue, slice, stats } from "@/lib/prices/analyzer";
-import { dayLong, money, monthLong, pct } from "@/lib/prices/format";
 import { GRADERS, GRADER_IDS } from "@/lib/grading/companies";
 import { RANGES } from "@/lib/prices/ranges";
 import { PriceChart } from "./PriceChart";
@@ -14,13 +13,14 @@ import s from "./Prices.module.css";
 // Casillas por grado (precio actual y variación; pulsar muestra u oculta su línea), periodos,
 // escala, gráfica y la línea que dice de dónde salen los datos y hasta cuándo.
 export function PricesPanel() {
-  const t = es.prices;
+  const { t: dict, f: fmt } = useI18n();
+  const t = dict.prices;
   const { card } = useCard();
   const p = usePrices();
   const hasData = p.status === "ready" && p.rows.length > 0;
   const rows = slice(p.rows, p.range);
   const rangeName = t.rangeNames[p.range];
-  const until = monthLong(p.asOf);
+  const until = fmt.monthLong(p.asOf);
 
   let sourceText = "";
   if (p.status === "loading") sourceText = t.loading;
@@ -36,7 +36,7 @@ export function PricesPanel() {
     sourceText = p.source.file
       ? t.sourceCsv(p.source.file, until)
       : raw
-        ? t.sourceRaw(raw.label, dayLong(raw.date), dayLong(raw.since)) + graded
+        ? t.sourceRaw(raw.label, fmt.dayLong(raw.date), fmt.dayLong(raw.since)) + graded
         : p.source.synthetic
           ? t.sourceMock(until)
           : t.sourceDb(p.source.label, until);
@@ -59,9 +59,9 @@ export function PricesPanel() {
               onClick={() => p.toggleGrade(g.key)}
             >
               <span className={s.lbl}><i className="sw" />{g.label}</span>
-              <span className={s.pr}>{hasData ? money(lastValue(p.rows, g.key), p.currency) : "—"}</span>
+              <span className={s.pr}>{hasData ? fmt.money(lastValue(p.rows, g.key), p.currency) : "—"}</span>
               <span className={`${s.ch} ${st ? (st.change >= 0 ? "up" : "down") : ""}`}>
-                {st ? t.changeIn(pct(st.change), p.range) : ""}
+                {st ? t.changeIn(fmt.pct(st.change), p.range) : ""}
               </span>
             </button>
           );
@@ -78,7 +78,7 @@ export function PricesPanel() {
         <div className={s.seg} role="group" aria-label={t.rangesLabel}>
           {RANGES.map((r) => (
             <button key={r.k} type="button" title={t.rangeNames[r.k]} aria-pressed={p.range === r.k} onClick={() => p.setRange(r.k)}>
-              {r.k}
+              {t.rangeShort[r.k]}
             </button>
           ))}
         </div>

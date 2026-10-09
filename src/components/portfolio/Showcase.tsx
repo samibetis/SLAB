@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useRef } from "react";
 import { cardHref } from "@/lib/collection/logic";
 import { gradeOption } from "@/lib/grading/companies";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import type { HoldingStat } from "@/lib/portfolio/logic";
 import type { Holding } from "@/lib/portfolio/types";
-import { money } from "@/lib/prices/format";
 import { SlabThumb } from "./SlabThumb";
 
 // Posición de cada funda en el abanico (x en % del ancho de la vitrina, giro en grados), cerrado y
@@ -23,6 +22,7 @@ const slabHref = (h: Holding) => `${cardHref(h.card)}&variant=${encodeURICompone
 // Vitrina: tus tres slabs de más valor en abanico. Al entrar se reparten sobre la mesa y se revela
 // su nota; con el ratón, la funda que tocas se inclina hacia él y el brillo del plástico le sigue.
 export function Showcase({ stats, play, fresh }: { stats: HoldingStat[]; play: boolean; fresh: Set<string> }) {
+  const { t: dict, f: fmt, path } = useI18n();
   const top = [...stats].sort((a, b) => (b.price ?? -1) - (a.price ?? -1) || b.h.addedAt.localeCompare(a.h.addedAt)).slice(0, 3);
   // la de más valor en el centro: [2ª, 1ª, 3ª]
   const order = top.length === 3 ? [top[1], top[0], top[2]] : top;
@@ -46,14 +46,14 @@ export function Showcase({ stats, play, fresh }: { stats: HoldingStat[]; play: b
           >
             <Tilt>
               <Link
-                href={slabHref(s.h)}
-                aria-label={`${es.portfolio.open}: ${s.h.card.name}, ${s.h.grader} ${gradeOption(s.h.grader, s.h.gradeId).value}${s.price != null ? `, ${money(s.price, s.h.currency)}` : ""}`}
+                href={path(slabHref(s.h))}
+                aria-label={`${dict.portfolio.open}: ${s.h.card.name}, ${s.h.grader} ${gradeOption(s.h.grader, s.h.gradeId).value}${s.price != null ? `, ${fmt.money(s.price, s.h.currency)}` : ""}`}
                 className="group/slab block rounded-[6%] focus-visible:outline-offset-4"
               >
                 <SlabThumb card={s.h.card} grader={s.h.grader} gradeId={s.h.gradeId} reveal={play || fresh.has(s.h.id)} delay={i * 110 + 260} glare />
                 {s.price != null && (
                   <span className="pointer-events-none absolute left-1/2 top-full mt-3 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-full bg-ink px-2.5 py-1 text-[12.5px] font-semibold tabular-nums text-panel opacity-0 transition-[opacity,transform] duration-200 group-hover/slab:translate-y-0 group-hover/slab:opacity-100 group-focus-visible/slab:translate-y-0 group-focus-visible/slab:opacity-100">
-                    {money(s.price, s.h.currency)}
+                    {fmt.money(s.price, s.h.currency)}
                   </span>
                 )}
               </Link>

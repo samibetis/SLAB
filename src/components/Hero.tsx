@@ -1,12 +1,13 @@
-import { es } from "@/lib/i18n/es";
+import { getI18n } from "@/lib/i18n/server";
 import { SearchBox } from "./search/SearchBox";
 import { SiteHeader } from "./SiteHeader";
 import { CardViewerLoader } from "./viewer/CardViewerLoader";
 
 // Hero en dos columnas asimétricas: a la izquierda titular y buscador, a la derecha el visor 3D.
 // Es de servidor; solo el buscador y el visor son componentes de cliente.
-export function Hero() {
-  const t = es.hero;
+export async function Hero() {
+  const { t: d } = await getI18n();
+  const t = d.hero;
   return (
     <div
       id="top"
@@ -22,7 +23,7 @@ export function Hero() {
           <p className="mb-9 mt-7 max-w-[44ch] text-[clamp(16.5px,1.35vw,19px)] leading-relaxed text-muted">{t.lead}</p>
           <SearchBox />
         </div>
-        <div className="w-full min-w-0 md:justify-self-end" aria-label={es.viewer.label}>
+        <div className="w-full min-w-0 md:justify-self-end" aria-label={d.viewer.label}>
           <CardViewerLoader />
         </div>
       </section>

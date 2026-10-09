@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { metaLine } from "@/lib/cards/format";
 import type { Card } from "@/lib/cards/types";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { useCard } from "../CardContext";
 import { Magnetic } from "../ui/Magnetic";
 
@@ -16,7 +16,8 @@ type MatchedSet = { code: string | null; name: string } | null;
 // Buscador con autocompletado: debounce, cancelación de la petición anterior, caché por consulta
 // y navegación con teclado (patrón combobox/listbox de ARIA). "/" lo enfoca desde cualquier sitio.
 export function SearchBox() {
-  const t = es.hero;
+  const { t: dict } = useI18n();
+  const t = dict.hero;
   const { card, setCard } = useCard();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<Status>("idle");

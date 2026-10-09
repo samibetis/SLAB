@@ -4,14 +4,19 @@ import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, XIcon } from "@phosphor-
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import type { LightboxCard } from "./viewer/LightboxViewer";
 
 // three.js solo se descarga al abrir la primera carta
 const LightboxViewer = dynamic(() => import("./viewer/LightboxViewer"), {
   ssr: false,
-  loading: () => <div className="skeleton mx-auto aspect-[63/88] h-[70%] rounded-[14px]" aria-label={es.viewer.loading} />,
+  loading: () => <ViewerLoading />,
 });
+
+function ViewerLoading() {
+  const { t: dict } = useI18n();
+  return <div className="skeleton mx-auto aspect-[63/88] h-[70%] rounded-[14px]" aria-label={dict.viewer.loading} />;
+}
 
 export interface LightboxItem {
   card: LightboxCard;
@@ -24,7 +29,8 @@ export interface LightboxItem {
 // Ver una carta de cerca sin salir de la página: ventana encima, fondo oscurecido y el visor 3D sin
 // funda. Se cierra con la X, pulsando fuera o con Escape; las flechas (o ← →) pasan a la anterior/siguiente.
 export function CardLightbox({ items, index, onIndex, onClose }: { items: LightboxItem[]; index: number | null; onIndex: (i: number) => void; onClose: () => void }) {
-  const t = es.lightbox;
+  const { t: dict } = useI18n();
+  const t = dict.lightbox;
   const ref = useRef<HTMLDialogElement>(null);
   const open = index !== null;
   const item = open ? items[index] : null;
@@ -57,7 +63,7 @@ export function CardLightbox({ items, index, onIndex, onClose }: { items: Lightb
             <button
               type="button"
               onClick={onClose}
-              aria-label={es.ui.close}
+              aria-label={dict.ui.close}
               className="grid size-11 place-items-center rounded-full bg-panel text-ink shadow-md transition-transform duration-150 active:scale-[0.94]"
             >
               <XIcon size={20} weight="bold" aria-hidden />

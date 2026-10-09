@@ -3,11 +3,11 @@
 import { ArrowSquareOutIcon, CheckIcon } from "@phosphor-icons/react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { variantLabel } from "@/lib/cards/format";
+import { relabelVariant, variantLabel } from "@/lib/cards/format";
 import { cardHref, cardImage } from "@/lib/collection/logic";
 import type { AlbumCard, AlbumEntry, SetCard } from "@/lib/collection/types";
 import type { CardStatus } from "@/lib/collection/versions";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 
 // Bolsillos de la carpeta. Funda de plástico con la carta; las reverse llevan el brillo de su foil.
 //  - Master set: un bolsillo por carta con todas sus versiones. Si solo cuenta una, un toque la marca;
@@ -61,32 +61,37 @@ function Sleeve({ card, owned, foil, children }: { card: AlbumCard; owned: boole
   );
 }
 
-const OpenLink = ({ href, label }: { href: string; label: string }) => (
-  <a
-    href={href}
-    title={es.collection.open}
-    aria-label={`${es.collection.open}: ${label}`}
-    className="absolute right-1 top-1 z-10 grid size-6 place-items-center rounded-md bg-panel/90 text-ink opacity-0 shadow-sm transition-opacity duration-150 focus-visible:opacity-100 group-hover:opacity-100"
-  >
-    <ArrowSquareOutIcon size={13} weight="bold" aria-hidden />
-  </a>
-);
+function OpenLink({ href, label }: { href: string; label: string }) {
+  const { t: dict, path } = useI18n();
+  return (
+    <a
+      href={path(href)}
+      title={dict.collection.open}
+      aria-label={`${dict.collection.open}: ${label}`}
+      className="absolute right-1 top-1 z-10 grid size-6 place-items-center rounded-md bg-panel/90 text-ink opacity-0 shadow-sm transition-opacity duration-150 focus-visible:opacity-100 group-hover:opacity-100"
+    >
+      <ArrowSquareOutIcon size={13} weight="bold" aria-hidden />
+    </a>
+  );
+}
 
 // Álbum libre: una versión concreta.
 export function FreePocket({ entry }: { entry: AlbumEntry }) {
+  const { t: dict, path } = useI18n();
   const { card } = entry;
-  const label = [card.name, card.number ?? card.localId, entry.variantName].filter(Boolean).join(" · ");
+  const variantName = relabelVariant(entry.variantName, dict); // guardada en el idioma en que se añadió
+  const label = [card.name, card.number ?? card.localId, variantName].filter(Boolean).join(" · ");
   const reverse = !!entry.variant && /(^|-)reverse(-|$)/.test(entry.variant);
   return (
     <div className="group">
       <Sleeve card={card} owned foil={reverse}>
         {/* la versión, como etiqueta sobre la funda (debajo descuadraría la página de 9) */}
-        {entry.variantName && (
+        {variantName && (
           <span className="pointer-events-none absolute inset-x-[6%] bottom-[3%] truncate rounded-full bg-panel/90 px-[1.6cqw] py-[0.6cqw] text-center text-[clamp(8px,1.5cqw,11.5px)] font-semibold text-ink shadow-sm">
-            {entry.variantName}
+            {variantName}
           </span>
         )}
-        <a href={cardHref(card, entry.variant)} aria-label={`${es.collection.open}: ${label}`} className="absolute inset-0 rounded-[5px]" />
+        <a href={path(cardHref(card, entry.variant))} aria-label={`${dict.collection.open}: ${label}`} className="absolute inset-0 rounded-[5px]" />
       </Sleeve>
     </div>
   );
@@ -101,7 +106,8 @@ export function MasterPocket({
   onWhole: (c: SetCard) => void;
   onVersion: (c: SetCard, key: string) => void;
 }) {
-  const t = es.collection;
+  const { t: dict } = useI18n();
+  const t = dict.collection;
   const [open, setOpen] = useState(false);
   const btn = useRef<HTMLButtonElement>(null);
   const multi = status.tracked.length > 1;
@@ -153,7 +159,8 @@ function VersionPicker({
   onVersion: (c: SetCard, key: string) => void;
   onClose: () => void;
 }) {
-  const t = es.collection;
+  const { t: dict } = useI18n();
+  const t = dict.collection;
   const box = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
@@ -214,7 +221,7 @@ function VersionPicker({
                 <span className={`grid size-[18px] shrink-0 place-items-center rounded-[5px] transition-colors duration-150 ${on ? "bg-ink text-panel" : "ring-[1.5px] ring-inset ring-line"}`}>
                   {on && <CheckIcon size={12} weight="bold" aria-hidden />}
                 </span>
-                <span className="min-w-0 flex-1 truncate">{variantLabel(o)}</span>
+                <span className="min-w-0 flex-1 truncate">{variantLabel(o, dict)}</span>
               </button>
             </li>
           );

@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { CardLanguage } from "@/lib/cards/types";
 import type { RankedCard } from "@/lib/db/schema";
-import { es } from "@/lib/i18n/es";
-import { money } from "@/lib/prices/format";
+import { useI18n } from "@/components/I18nProvider";
 import { bigImage, rankedCardHref } from "@/lib/rankings/logic";
 import { CardLightbox, type LightboxItem } from "../CardLightbox";
 
@@ -21,7 +20,8 @@ const plainClick = (e: React.MouseEvent) => e.button === 0 && !e.metaKey && !e.c
 
 // El top 10 de una colección: las tres primeras en grande y del 4 al 10 en lista.
 export function RankingGallery({ top, lang, currency, setName }: { top: RankedCard[]; lang: CardLanguage; currency: string; setName: string }) {
-  const t = es.rankings;
+  const { t: dict, f: fmt, path } = useI18n(); // `lang` (prop) es el idioma de las cartas, no el de la web
+  const t = dict.rankings;
   const [open, setOpen] = useState<number | null>(null);
 
   const items: LightboxItem[] = useMemo(
@@ -33,14 +33,14 @@ export function RankingGallery({ top, lang, currency, setName }: { top: RankedCa
         },
         title: `${i + 1}. ${c.name}`,
         subtitle: [c.number ?? c.localId, c.variantName].filter(Boolean).join(" · "),
-        badge: money(c.price, currency),
-        href: rankedCardHref(c, lang),
+        badge: fmt.money(c.price, currency),
+        href: path(rankedCardHref(c, lang)),
       })),
-    [top, lang, currency, setName],
+    [top, lang, currency, setName, path, fmt],
   );
 
   const linkProps = (c: RankedCard, i: number) => ({
-    href: rankedCardHref(c, lang),
+    href: path(rankedCardHref(c, lang)),
     onClick: (e: React.MouseEvent) => {
       if (!plainClick(e)) return;
       e.preventDefault();
@@ -59,7 +59,7 @@ export function RankingGallery({ top, lang, currency, setName }: { top: RankedCa
                 <span className="text-[40px] font-extrabold leading-none tabular-nums tracking-[-0.04em] [font-stretch:125%]" aria-label={t.rank(i + 1)}>
                   {i + 1}
                 </span>
-                <span className="text-[22px] font-extrabold tabular-nums tracking-[-0.02em] [font-stretch:110%]">{money(c.price, currency)}</span>
+                <span className="text-[22px] font-extrabold tabular-nums tracking-[-0.02em] [font-stretch:110%]">{fmt.money(c.price, currency)}</span>
               </div>
               <div className="mt-4 grid flex-1 place-items-center rounded-2xl bg-soft p-4">
                 {c.image ? (
@@ -104,7 +104,7 @@ export function RankingGallery({ top, lang, currency, setName }: { top: RankedCa
                   <span className="block truncate text-[13px] text-muted">{[c.number ?? c.localId, c.variantName].filter(Boolean).join(" · ")}</span>
                 </span>
                 <span className="flex items-center gap-3">
-                  <span className="text-[17px] font-extrabold tabular-nums">{money(c.price, currency)}</span>
+                  <span className="text-[17px] font-extrabold tabular-nums">{fmt.money(c.price, currency)}</span>
                   <ArrowRightIcon size={15} className="text-muted transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
                 </span>
               </Link>

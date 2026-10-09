@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { slugify } from "@/lib/catalog/normalize";
 import { DEFAULT_VARIANT, type Card, type VariantOption } from "@/lib/cards/types";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { parseCsv } from "@/lib/prices/csv";
 import { DEFAULT_GRADER, carryGrade, type GraderId } from "@/lib/grading/companies";
 import { gradesFor, type GradeDef } from "@/lib/prices/grades";
@@ -83,16 +83,17 @@ const writeCsv = (key: string, v: { file: string; text: string } | null) => {
 };
 
 // Carta provisional cuando se importa un CSV sin haber buscado ninguna (como el prototipo).
-const csvCard = (file: string): Card => {
+const csvCard = (file: string, setName: string): Card => {
   const name = file.replace(/\.(csv|txt)$/i, "");
   const id = `csv-${slugify(name) || "datos"}`;
   return {
-    id, slug: id, name, set: es.prices.csvCardName, setId: "csv", localId: "0", language: "EN",
+    id, slug: id, name, set: setName, setId: "csv", localId: "0", language: "EN",
     imageUrl: null, imageThumbUrl: null, imageNeedsProxy: false, externalIds: {}, variants: null, variantOptions: [],
   };
 };
 
 export function PriceProvider({ children }: { children: ReactNode }) {
+  const { t: dict } = useI18n();
   const { card, setCard } = useCard();
   const [chosen, setChosen] = useState<Record<string, string>>({});
   const [range, setRange] = useState<RangeKey>(DEFAULT_RANGE);
@@ -132,11 +133,11 @@ export function PriceProvider({ children }: { children: ReactNode }) {
         const j = (await res.json()) as { points: PricePoint[]; source: SeriesSource | null };
         setLoaded({ key, status: "ready", points: j.points, source: j.source });
       } catch {
-        if (!ctl.signal.aborted) setLoaded({ key, status: "error", points: [], source: null, error: es.prices.fetchError });
+        if (!ctl.signal.aborted) setLoaded({ key, status: "error", points: [], source: null, error: dict.prices.fetchError });
       }
     })();
     return () => ctl.abort();
-  }, [card, key, variant, tick]);
+  }, [card, key, variant, tick, dict.prices.fetchError]);
 
   // Precios puestos a mano (del navegador). Se recargan si cambian en cualquier parte (portafolio, otra pestaña).
   useEffect(() => {
@@ -164,17 +165,17 @@ export function PriceProvider({ children }: { children: ReactNode }) {
 
   const importFile = useCallback(
     async (file: File) => {
-      const target = card ?? csvCard(file.name);
+      const target = card ?? csvCard(file.name, dict.prices.csvCardName);
       const v = card ? variant : DEFAULT_VARIANT;
       const text = await file.text();
       const res = parseCsv(text, { cardId: target.id, variant: v, source: "csv" });
-      if (!res.points.length) return setNotice(es.prices.csvInvalid);
-      setNotice(res.skipped ? es.prices.csvSkipped(res.skipped) : null);
+      if (!res.points.length) return setNotice(dict.prices.csvInvalid);
+      setNotice(res.skipped ? dict.prices.csvSkipped(res.skipped) : null);
       writeCsv(`${target.id}|${v}`, { file: file.name, text });
       if (card) setTick((t) => t + 1);
       else setCard(target); // la carga lee el CSV recién guardado
     },
-    [card, variant, setCard],
+    [card, variant, setCard, dict.prices],
   );
 
   const value: PriceCtx = {

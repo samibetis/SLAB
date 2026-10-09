@@ -10,14 +10,16 @@ import { cardImage, newId } from "@/lib/collection/logic";
 import { browserStore } from "@/lib/collection/store";
 import type { Album } from "@/lib/collection/types";
 import { PRESETS, presetOf, type Preset } from "@/lib/collection/versions";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
+import { langName } from "@/lib/cards/format";
 import { BackupControls } from "../BackupControls";
 import { TrackingPicker } from "./TrackingPicker";
 import { useAlbums } from "./useAlbums";
 
 // Portada de la colección: crear (master set o álbum libre) a la izquierda y tus álbumes a la derecha.
 export function CollectionHome() {
-  const t = es.collection;
+  const { t: dict, path } = useI18n();
+  const t = dict.collection;
   const router = useRouter();
   const { albums, error } = useAlbums();
   const [q, setQ] = useState("");
@@ -60,7 +62,7 @@ export function CollectionHome() {
   async function create(album: Album) {
     try {
       await browserStore.save(album);
-      router.push(`/coleccion/${album.id}`);
+      router.push(path(`/coleccion/${album.id}`));
     } catch {
       alert(t.storageError);
     }
@@ -117,7 +119,7 @@ export function CollectionHome() {
                       <span className="min-w-0 flex-1">
                         <b className="block truncate font-semibold">{s.name}</b>
                         <span className="text-[12.5px] text-muted">
-                          {[s.code, s.language === "JP" ? "japonés" : "inglés", s.releaseDate?.slice(0, 4)].filter(Boolean).join(" · ")}
+                          {[s.code, langName(s.language, dict), s.releaseDate?.slice(0, 4)].filter(Boolean).join(" · ")}
                         </span>
                       </span>
                       <span className="inline-flex flex-none items-center gap-1 rounded-lg bg-soft px-2.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-200 group-hover:bg-ink group-hover:text-panel">
@@ -204,7 +206,8 @@ export function CollectionHome() {
 
 // Tapa de un álbum: lomo oscuro, nombre, tipo y progreso, con las últimas cartas añadidas en abanico.
 function AlbumCover({ album }: { album: Album }) {
-  const t = es.collection;
+  const { t: dict, path } = useI18n();
+  const t = dict.collection;
   // Las 3 últimas cartas distintas: una carta puede tener varias entradas (una por versión, p. ej.
   // normal y reverse) y no debe salir repetida en el abanico (ni repetir la key de React).
   const recent = [...new Map([...album.entries].reverse().map((e) => [e.card.id, e] as const)).values()].slice(0, 3);
@@ -214,7 +217,7 @@ function AlbumCover({ album }: { album: Album }) {
   const total = stats?.total ?? album.total;
   return (
     <Link
-      href={`/coleccion/${album.id}`}
+      href={path(`/coleccion/${album.id}`)}
       // altura mínima, no fija: si el nombre ocupa dos líneas la tapa crece en vez de pisar el progreso
       className="group relative flex min-h-[188px] overflow-hidden rounded-2xl bg-panel transition-transform duration-300 ease-out-expo hover:-translate-y-0.5 active:scale-[0.99]"
     >

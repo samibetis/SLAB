@@ -3,7 +3,8 @@
 import { useId, useState, type ReactNode } from "react";
 import type { AlbumCard } from "@/lib/collection/types";
 import { GRADERS, GRADER_IDS, carryGrade, type GraderId } from "@/lib/grading/companies";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
+import { relabelVariant } from "@/lib/cards/format";
 import { parseAmount, today } from "@/lib/portfolio/logic";
 import type { Holding } from "@/lib/portfolio/types";
 import { SlabThumb } from "./SlabThumb";
@@ -28,7 +29,8 @@ export function HoldingForm({
   onCancel: () => void;
   aside?: ReactNode; // acción extra junto a la carta ("Otra carta")
 }) {
-  const t = es.portfolio;
+  const { t: dict, lang } = useI18n();
+  const t = dict.portfolio;
   const id = useId();
   const [grader, setGrader] = useState<GraderId>(initial.grader);
   const [gradeId, setGradeId] = useState(initial.gradeId);
@@ -43,8 +45,8 @@ export function HoldingForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amount = parseAmount(cost);
-    const worth = value.trim() ? parseAmount(value) : null;
+    const amount = parseAmount(cost, lang);
+    const worth = value.trim() ? parseAmount(value, lang) : null;
     const errs = {
       cost: amount == null || amount < 0 ? t.costInvalid : undefined,
       bought: !/^\d{4}-\d{2}-\d{2}$/.test(bought) || bought > max ? t.dateInvalid : undefined,
@@ -72,7 +74,7 @@ export function HoldingForm({
         <div className="min-w-0 flex-1">
           <p className="truncate text-[17px] font-bold">{card.name}</p>
           {meta && <p className="mt-0.5 truncate text-[13.5px] text-muted">{meta}</p>}
-          {!variants && initial.variantName && <p className="mt-0.5 truncate text-[13.5px] text-muted">{initial.variantName}</p>}
+          {!variants && initial.variantName && <p className="mt-0.5 truncate text-[13.5px] text-muted">{relabelVariant(initial.variantName, dict)}</p>}
           {aside && <div className="mt-2">{aside}</div>}
         </div>
       </div>

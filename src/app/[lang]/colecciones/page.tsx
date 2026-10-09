@@ -2,21 +2,26 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { RankingIndex } from "@/components/rankings/RankingIndex";
 import { SiteHeader } from "@/components/SiteHeader";
-import { es } from "@/lib/i18n/es";
+import { langOf, localeMeta } from "@/lib/i18n/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { rankingIndex } from "@/lib/rankings/data";
 
 // Se regenera como mucho cada 10 minutos: recoge pronto lo que vaya terminando el barrido.
 export const revalidate = 600;
 
-export const metadata: Metadata = {
-  title: es.rankings.metaTitle,
-  description: es.rankings.metaDescription,
-  alternates: { canonical: "/colecciones" },
-  openGraph: { title: es.rankings.metaTitle, description: es.rankings.metaDescription, url: "/colecciones" },
-};
+export async function generateMetadata({ params }: PageProps<"/[lang]/colecciones">): Promise<Metadata> {
+  const { lang, t } = await langOf(params);
+  const m = localeMeta(lang, "/colecciones");
+  return {
+    title: t.rankings.metaTitle,
+    description: t.rankings.metaDescription,
+    alternates: m.alternates,
+    openGraph: { ...m.openGraph, title: t.rankings.metaTitle, description: t.rankings.metaDescription },
+  };
+}
 
 export default async function RankingsPage() {
-  const t = es.rankings;
+  const t = (await getI18n()).t.rankings;
   const sets = await rankingIndex().catch(() => []);
   return (
     <>

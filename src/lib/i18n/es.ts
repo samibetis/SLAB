@@ -1,4 +1,4 @@
-// Todos los textos de la interfaz, en un solo sitio para poder traducir más adelante.
+// Todos los textos de la interfaz en español. La traducción inglesa está en en.ts (mismas claves; ver index.ts).
 export const es = {
   meta: {
     title: "Slab: lo que vale tu carta Pokémon, nota a nota",
@@ -6,6 +6,18 @@ export const es = {
       "Busca cualquier carta Pokémon y compara su precio sin gradear y gradeada por PSA, BGS, CGC, SGC o TAG. Gírala en 3D y mira cómo se mueve cada grado.",
   },
   ui: { close: "Cerrar" },
+  // switch de idioma de la cabecera
+  lang: {
+    label: "Idioma",
+    short: { es: "ES", en: "EN" } as Record<string, string>,
+    names: { es: "Español", en: "English" } as Record<string, string>,
+  },
+  notFound: {
+    metaTitle: "Página no encontrada · Slab",
+    title: "Esta página no existe",
+    text: "Puede que el enlace esté mal escrito o que la página se haya movido.",
+    home: "Ir a la portada",
+  },
   lightbox: {
     label: "Carta",
     prev: "Carta anterior",
@@ -378,6 +390,8 @@ export const es = {
     title: "Elige una carta",
     meta: "Búscala arriba y escoge la versión exacta: colección, edición e idioma.",
     rangesLabel: "Periodo",
+    // lo que se lee en los botones de periodo
+    rangeShort: { "3M": "3M", "6M": "6M", "1A": "1A", "3A": "3A", Todo: "Todo" } as Record<string, string>,
     rangeNames: {
       "3M": "3 meses", "6M": "6 meses", "1A": "1 año", "3A": "3 años", Todo: "todo el histórico",
     } as Record<string, string>,

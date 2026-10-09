@@ -4,15 +4,14 @@ import { ArrowDownRightIcon, ArrowSquareOutIcon, ArrowUpRightIcon, CheckIcon, Cu
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { metaLine, variantLabel } from "@/lib/cards/format";
+import { metaLine, relabelVariant, variantLabel } from "@/lib/cards/format";
 import { DEFAULT_VARIANT, type Card } from "@/lib/cards/types";
 import { cardHref, newId, toAlbumCard } from "@/lib/collection/logic";
 import { GRADERS, gradeOption } from "@/lib/grading/companies";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { marketChange, parseAmount, summarize, timeline, type HoldingStat } from "@/lib/portfolio/logic";
 import { portfolioStore } from "@/lib/portfolio/store";
 import type { Holding } from "@/lib/portfolio/types";
-import { money, monthLong, pct } from "@/lib/prices/format";
 import { DEFAULT_RANGE, RANGES, type RangeKey } from "@/lib/prices/ranges";
 import { BackupControls } from "../BackupControls";
 import { SupportNote } from "../SupportNote";
@@ -35,15 +34,15 @@ const gradeText = (h: Pick<Holding, "grader" | "gradeId">) => {
   const o = gradeOption(h.grader, h.gradeId);
   return `${h.grader} ${o.value} · ${o.word}`;
 };
-const dateText = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
 const slabHref = (h: Holding) => `${cardHref(h.card)}&variant=${encodeURIComponent(h.variant)}&grader=${h.grader}&grade=${encodeURIComponent(h.gradeId)}`;
 const INTRO_KEY = "slab:portfolio:intro";
-const save = (h: Holding) => portfolioStore.save(h).catch(() => alert(es.portfolio.storageError));
+const save = (h: Holding, storageError: string) => portfolioStore.save(h).catch(() => alert(storageError));
 
 // Portafolio de gradeadas: valor de hoy frente a lo pagado, evolución mes a mes, reparto por empresa y
 // la lista de slabs. Los slabs viven en el navegador; los precios llegan del servidor en una petición.
 export function PortfolioView() {
-  const t = es.portfolio;
+  const { t: dict, f: fmt } = useI18n();
+  const t = dict.portfolio;
   const { holdings, fresh, storeError, status, series, manualCount, sources, csv, retry } = usePortfolio();
   // La entrada completa (reparto, revelado y cuenta del total) solo la primera vez en la sesión:
   // al volver a la página los datos se ven al instante, sin esperar a la coreografía.
@@ -126,7 +125,7 @@ export function PortfolioView() {
           onCancel={() => setEditing(null)}
           onSubmit={async ({ value, ...d }) => {
             const h = { ...editing.h, ...d, updatedAt: new Date().toISOString() };
-            await save(h);
+            await save(h, dict.portfolio.storageError);
             if (value) await saveSlabValue(h, value).catch(() => alert(t.storageError));
             setEditing(null);
           }}
@@ -162,9 +161,9 @@ export function PortfolioView() {
   const paid = sources.filter((s) => !s.synthetic && s.label !== s.raw?.label).map((s) => s.label);
   const sourceText =
     (synthetic && asOf
-      ? t.sourceMock(monthLong(asOf)) + (rawLabels ? t.sourceAnchored(rawLabels) : "")
+      ? t.sourceMock(fmt.monthLong(asOf)) + (rawLabels ? t.sourceAnchored(rawLabels) : "")
       : paid.length && asOf
-        ? t.sourceDb([...new Set(paid)].join(", "), monthLong(asOf))
+        ? t.sourceDb([...new Set(paid)].join(", "), fmt.monthLong(asOf))
         : t.sourceOwn(rawLabels)) +
     (manualCount ? t.sourceManual(manualCount) : "") +
     (csv ? t.sourceCsv : "");
@@ -173,9 +172,9 @@ export function PortfolioView() {
   const figure = (v: ReactNode) => (pending ? <span className="skeleton inline-block h-[1.1em] w-[4.5ch] rounded align-middle" /> : v);
   const label = (s: HoldingStat) => `${s.h.card.name} ${s.h.grader} ${gradeOption(s.h.grader, s.h.gradeId).value}`;
   const reading =
-    (sum.best ? t.readBest(label(sum.best), pct(sum.best.pnlPct)) : "") +
-    (sum.worst ? t.readWorst(label(sum.worst), pct(sum.worst.pnlPct), (sum.worst.pnlPct ?? 0) >= 0) : "") +
-    (sum.byGrader.length > 1 && sum.value > 0 ? t.readConcentration(sum.byGrader[0].grader, pct(sum.byGrader[0].share).replace("+", "")) : "");
+    (sum.best ? t.readBest(label(sum.best), fmt.pct(sum.best.pnlPct)) : "") +
+    (sum.worst ? t.readWorst(label(sum.worst), fmt.pct(sum.worst.pnlPct), (sum.worst.pnlPct ?? 0) >= 0) : "") +
+    (sum.byGrader.length > 1 && sum.value > 0 ? t.readConcentration(sum.byGrader[0].grader, fmt.pct(sum.byGrader[0].share).replace("+", "")) : "");
 
   return (
     <>
@@ -196,24 +195,24 @@ export function PortfolioView() {
             <p className={`mt-4 inline-flex items-center gap-1.5 text-[19px] font-bold tabular-nums ${up ? "text-up" : "text-down"}`}>
               {up ? <ArrowUpRightIcon size={20} weight="bold" aria-hidden /> : <ArrowDownRightIcon size={20} weight="bold" aria-hidden />}
               <span className="vh">{t.pnlLabel}: </span>
-              {(up ? "+" : "−") + money(Math.abs(sum.pnl), CUR)} · {pct(sum.pnlPct)}
+              {(up ? "+" : "−") + fmt.money(Math.abs(sum.pnl), CUR)} · {fmt.pct(sum.pnlPct)}
             </p>
           )}
           <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3 text-[14.5px]">
             <div>
               <dt className="text-muted">{t.costLabel}</dt>
-              <dd className="mt-0.5 text-[17px] font-semibold tabular-nums">{figure(money(sum.cost, CUR))}</dd>
+              <dd className="mt-0.5 text-[17px] font-semibold tabular-nums">{figure(fmt.money(sum.cost, CUR))}</dd>
             </div>
             <div>
               <dt className="text-muted">{t.slabsLabel}</dt>
               <dd className="mt-0.5 text-[17px] font-semibold tabular-nums">{sum.count}</dd>
             </div>
             <div title={t.marketHint}>
-              <dt className="text-muted">{t.marketLabel(range)}</dt>
-              <dd className={`mt-0.5 text-[17px] font-semibold tabular-nums ${market == null ? "" : market >= 0 ? "text-up" : "text-down"}`}>{figure(pct(market))}</dd>
+              <dt className="text-muted">{t.marketLabel(range === "Todo" ? "Todo" : dict.prices.rangeShort[range])}</dt>
+              <dd className={`mt-0.5 text-[17px] font-semibold tabular-nums ${market == null ? "" : market >= 0 ? "text-up" : "text-down"}`}>{figure(fmt.pct(market))}</dd>
             </div>
           </dl>
-          {!pending && sum.unpriced.count > 0 && <p className="mt-4 max-w-[52ch] text-[13.5px] text-muted">{t.unpriced(sum.unpriced.count, money(sum.unpriced.cost, CUR))}</p>}
+          {!pending && sum.unpriced.count > 0 && <p className="mt-4 max-w-[52ch] text-[13.5px] text-muted">{t.unpriced(sum.unpriced.count, fmt.money(sum.unpriced.cost, CUR))}</p>}
           {!pending && reading && <p className="mt-6 max-w-[52ch] text-[16px] leading-relaxed">{reading}</p>}
           <AddButton onClick={() => setEditing({ mode: "add", card: null })} className="mt-7" />
         </div>
@@ -279,8 +278,8 @@ export function PortfolioView() {
               <li key={g.grader} className="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
                 <span className="size-3 shrink-0 rounded-[4px] ring-1 ring-ink/15" style={{ background: GRADERS[g.grader].swatch }} aria-hidden />
                 <span className="w-12 font-bold">{g.grader}</span>
-                <span className="min-w-0 flex-1 text-[13.5px] text-muted">{t.byGraderValue(pct(g.share).replace("+", ""), g.count)}</span>
-                <span className="font-semibold tabular-nums">{money(g.value, CUR)}</span>
+                <span className="min-w-0 flex-1 text-[13.5px] text-muted">{t.byGraderValue(fmt.pct(g.share).replace("+", ""), g.count)}</span>
+                <span className="font-semibold tabular-nums">{fmt.money(g.value, CUR)}</span>
               </li>
             ))}
           </ul>
@@ -325,6 +324,7 @@ export function PortfolioView() {
 }
 
 function AddButton({ onClick, className = "" }: { onClick: () => void; className?: string }) {
+  const { t: dict } = useI18n();
   return (
     <button
       type="button"
@@ -332,15 +332,16 @@ function AddButton({ onClick, className = "" }: { onClick: () => void; className
       className={`inline-flex min-h-12 items-center gap-2 rounded-2xl bg-ink px-5 text-[15px] font-semibold text-panel transition-transform duration-150 active:scale-[0.97] ${className}`}
     >
       <PlusIcon size={17} weight="bold" aria-hidden />
-      {es.portfolio.add}
+      {dict.portfolio.add}
     </button>
   );
 }
 
 // Formulario de alta con la carta ya elegida: aquí sí se puede escoger la versión.
 function AddForm({ card, onBack, onDone }: { card: Card; onBack: () => void; onDone: () => void }) {
-  const t = es.portfolio;
-  const variants = (card.variantOptions ?? []).map((v) => ({ key: v.key, label: variantLabel(v) }));
+  const { t: dict } = useI18n();
+  const t = dict.portfolio;
+  const variants = (card.variantOptions ?? []).map((v) => ({ key: v.key, label: variantLabel(v, dict) }));
   return (
     <HoldingForm
       card={toAlbumCard(card)}
@@ -357,7 +358,7 @@ function AddForm({ card, onBack, onDone }: { card: Card; onBack: () => void; onD
       onSubmit={async ({ value, ...d }) => {
         const now = new Date().toISOString();
         const h = { ...d, id: newId(), card: toAlbumCard(card), currency: CUR, addedAt: now, updatedAt: now };
-        await save(h);
+        await save(h, dict.portfolio.storageError);
         if (value) await saveSlabValue(h, value).catch(() => alert(t.storageError));
         onDone();
       }}
@@ -367,7 +368,8 @@ function AddForm({ card, onBack, onDone }: { card: Card; onBack: () => void; onD
 
 // Una fila: la funda en miniatura, qué es, lo que pagaste y lo que vale, con su mini gráfica.
 function HoldingRow({ s, fresh, loading, onEdit }: { s: HoldingStat; fresh: boolean; loading: boolean; onEdit: () => void }) {
-  const t = es.portfolio;
+  const { t: dict, f: fmt, path } = useI18n();
+  const t = dict.portfolio;
   const [confirm, setConfirm] = useState(false);
   const [editingValue, setEditingValue] = useState(false);
   const { h } = s;
@@ -379,7 +381,7 @@ function HoldingRow({ s, fresh, loading, onEdit }: { s: HoldingStat; fresh: bool
       transition={{ duration: 0.35, ease: EASE }}
       className="grid grid-cols-[56px_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-2xl bg-panel p-3.5 sm:grid-cols-[64px_minmax(0,1fr)_auto]"
     >
-      <Link href={slabHref(h)} aria-label={`${t.open}: ${h.card.name}`} className="row-span-2 self-start transition-transform duration-200 hover:-translate-y-0.5 sm:row-span-1">
+      <Link href={path(slabHref(h))} aria-label={`${t.open}: ${h.card.name}`} className="row-span-2 self-start transition-transform duration-200 hover:-translate-y-0.5 sm:row-span-1">
         <SlabThumb card={h.card} grader={h.grader} gradeId={h.gradeId} reveal={fresh} delay={200} />
       </Link>
       <div className="min-w-0">
@@ -390,11 +392,11 @@ function HoldingRow({ s, fresh, loading, onEdit }: { s: HoldingStat; fresh: bool
           {h.cert && <span className="truncate font-normal text-muted">· {t.cert(h.cert)}</span>}
         </p>
         <p className="mt-0.5 truncate text-[13px] text-muted">
-          {[h.card.setName, h.card.number ?? h.card.localId, h.variantName].filter(Boolean).join(" · ")}
+          {[h.card.setName, h.card.number ?? h.card.localId, relabelVariant(h.variantName, dict)].filter(Boolean).join(" · ")}
         </p>
-        <p className="mt-0.5 text-[13px] text-muted tabular-nums">{t.paid(money(h.cost, h.currency), dateText(h.bought))}</p>
+        <p className="mt-0.5 text-[13px] text-muted tabular-nums">{t.paid(fmt.money(h.cost, h.currency), fmt.dayShort(h.bought))}</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] font-semibold">
-          <Link href={slabHref(h)} className="inline-flex items-center gap-1 text-muted transition-colors duration-150 hover:text-ink">
+          <Link href={path(slabHref(h))} className="inline-flex items-center gap-1 text-muted transition-colors duration-150 hover:text-ink">
             <ArrowSquareOutIcon size={14} aria-hidden /> {t.open}
           </Link>
           <button
@@ -438,9 +440,9 @@ function HoldingRow({ s, fresh, loading, onEdit }: { s: HoldingStat; fresh: bool
         ) : (
           <>
             <div>
-              <p className="text-[20px] font-extrabold tabular-nums tracking-[-0.02em] [font-stretch:110%]">{money(s.price, h.currency)}</p>
+              <p className="text-[20px] font-extrabold tabular-nums tracking-[-0.02em] [font-stretch:110%]">{fmt.money(s.price, h.currency)}</p>
               <p className={`text-[13.5px] font-semibold tabular-nums ${up ? "text-up" : "text-down"}`}>
-                {(up ? "+" : "−") + money(Math.abs(s.pnl!), h.currency)} · {pct(s.pnlPct)}
+                {(up ? "+" : "−") + fmt.money(Math.abs(s.pnl!), h.currency)} · {fmt.pct(s.pnlPct)}
               </p>
             </div>
             <Spark values={s.spark} />
@@ -453,7 +455,8 @@ function HoldingRow({ s, fresh, loading, onEdit }: { s: HoldingStat; fresh: bool
 
 // Valor de hoy en línea: se guarda como precio puesto a mano de esa carta, versión y nota.
 function ValueEditor({ h, onDone }: { h: Holding; onDone: () => void }) {
-  const t = es.portfolio;
+  const { t: dict } = useI18n();
+  const t = dict.portfolio;
   const [v, setV] = useState("");
   const [error, setError] = useState(false);
   async function submit(e: React.FormEvent) {

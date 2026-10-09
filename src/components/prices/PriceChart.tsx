@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { xLabelIndexes, yScale } from "@/lib/prices/chart";
-import { money, moneyCompact, monthLong, monthShort } from "@/lib/prices/format";
 import type { GradeDef } from "@/lib/prices/grades";
 import type { Row } from "@/lib/prices/types";
 import s from "./Prices.module.css";
@@ -14,6 +13,7 @@ const M = { l: 56, r: 14, t: 14, b: 30 };
 export function PriceChart({
   rows, grades, log, currency, rangeName,
 }: { rows: Row[]; grades: GradeDef[]; log: boolean; currency: string; rangeName: string }) {
+  const { t: dict, f: fmt } = useI18n();
   const wrap = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(640);
   const [hover, setHover] = useState<number | null>(null);
@@ -29,7 +29,7 @@ export function PriceChart({
 
   const vals = rows.flatMap((r) => grades.map((g) => r.p[g.key]).filter((v): v is number => !!v));
   if (rows.length < 2 || !vals.length) {
-    return <div ref={wrap}><p className="empty">{es.prices.chartNoData}</p></div>;
+    return <div ref={wrap}><p className="empty">{dict.prices.chartNoData}</p></div>;
   }
 
   const H = Math.round(Math.min(380, Math.max(240, w * 0.48)));
@@ -50,7 +50,7 @@ export function PriceChart({
   return (
     <div ref={wrap} className={s.chartbox}>
       <svg
-        viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={es.prices.chartLabel(rangeName)}
+        viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={dict.prices.chartLabel(rangeName)}
         className={s.svg} onPointerMove={onMove} onPointerLeave={() => setHover(null)}
       >
         {ticks.map((t) => {
@@ -59,13 +59,13 @@ export function PriceChart({
           return (
             <g key={t}>
               <line className={s.grid} x1={M.l} x2={w - M.r} y1={ty} y2={ty} />
-              <text className={s.axis} x={M.l - 8} y={ty + 4} textAnchor="end">{moneyCompact(t, currency)}</text>
+              <text className={s.axis} x={M.l - 8} y={ty + 4} textAnchor="end">{fmt.moneyCompact(t, currency)}</text>
             </g>
           );
         })}
         {xLabelIndexes(rows.length).map((i) => (
           <text key={i} className={s.axis} x={x(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === rows.length - 1 ? "end" : "middle"}>
-            {monthShort(rows[i].t)}
+            {fmt.monthShort(rows[i].t)}
           </text>
         ))}
         {grades.map((g) => {
@@ -97,9 +97,9 @@ export function PriceChart({
           className={s.tip}
           style={{ left: `${(x(hi) / w) * 100}%`, transform: x(hi) > w / 2 ? "translateX(calc(-100% - 14px))" : "translateX(14px)" }}
         >
-          <strong>{monthLong(hr.t)}</strong>
+          <strong>{fmt.monthLong(hr.t)}</strong>
           {grades.slice().reverse().map((g) => (
-            <div key={g.key}><span>{g.label}</span><span>{money(hr.p[g.key], currency)}</span></div>
+            <div key={g.key}><span>{g.label}</span><span>{fmt.money(hr.p[g.key], currency)}</span></div>
           ))}
         </div>
       )}

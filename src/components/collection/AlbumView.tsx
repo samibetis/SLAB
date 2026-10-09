@@ -8,7 +8,8 @@ import { byNumber, entryId } from "@/lib/collection/logic";
 import { browserStore } from "@/lib/collection/store";
 import type { Album, AlbumEntry, SetCard } from "@/lib/collection/types";
 import { PRESETS, cardStatus, countsVersions, presetOf, setProgress, toggleVersion, toggleWhole, type Preset } from "@/lib/collection/versions";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
+import { langName } from "@/lib/cards/format";
 import { Binder } from "./Binder";
 import { FreePocket, MasterPocket } from "./Pocket";
 import { TrackingPicker } from "./TrackingPicker";
@@ -29,7 +30,8 @@ function withStats(a: Album, setCards: SetCard[] | null): Album {
 //    un bolsillo y se marcan las versiones que tienes. El tipo de master set decide qué cuenta.
 //  - Álbum libre: solo lo que has añadido, un bolsillo por versión.
 export function AlbumView({ id }: { id: string }) {
-  const t = es.collection;
+  const { t: dict, path } = useI18n();
+  const t = dict.collection;
   const router = useRouter();
   const [album, setAlbum] = useState<Album | null | undefined>(undefined); // undefined = cargando
   const [setCards, setSetCards] = useState<SetCard[] | null>(null);
@@ -95,7 +97,7 @@ export function AlbumView({ id }: { id: string }) {
     return (
       <div className="mx-auto max-w-[1400px] px-4 py-16 text-center md:px-10">
         <p className="text-[18px] font-semibold">{t.notFound}</p>
-        <Link href="/coleccion" className="mt-4 inline-flex items-center gap-2 font-semibold underline underline-offset-4">
+        <Link href={path("/coleccion")} className="mt-4 inline-flex items-center gap-2 font-semibold underline underline-offset-4">
           <ArrowLeftIcon size={16} aria-hidden /> {t.back}
         </Link>
       </div>
@@ -132,7 +134,7 @@ export function AlbumView({ id }: { id: string }) {
         </p>
         {album.set && (
           <p className="mt-[2cqw] text-[clamp(11px,2.8cqw,15px)] opacity-70">
-            {[album.set.code, album.set.language === "JP" ? "japonés" : "inglés"].filter(Boolean).join(" · ")}
+            {[album.set.code, langName(album.set.language, dict)].filter(Boolean).join(" · ")}
           </p>
         )}
       </div>
@@ -153,7 +155,7 @@ export function AlbumView({ id }: { id: string }) {
       {/* cabecera */}
       <div className="flex flex-wrap items-end justify-between gap-6">
         <div className="min-w-0">
-          <Link href="/coleccion" className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted transition-colors duration-200 hover:text-ink">
+          <Link href={path("/coleccion")} className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-muted transition-colors duration-200 hover:text-ink">
             <ArrowLeftIcon size={15} aria-hidden /> {t.back}
           </Link>
           <h1 className="mt-3 text-balance text-[clamp(32px,4.2vw,56px)] font-extrabold leading-[0.95] tracking-[-0.03em] [font-stretch:125%]">
@@ -196,7 +198,7 @@ export function AlbumView({ id }: { id: string }) {
                 type="button"
                 onClick={async () => {
                   await browserStore.remove(album.id).catch(() => {});
-                  router.push("/coleccion");
+                  router.push(path("/coleccion"));
                 }}
                 className="rounded-lg bg-down px-2.5 py-1 font-semibold text-panel"
               >
@@ -239,7 +241,7 @@ export function AlbumView({ id }: { id: string }) {
         {!isMaster && entries.length === 0 && (
           <div className="rounded-2xl border border-dashed border-line px-6 py-14 text-center">
             <p className="text-[16px]">{t.freeEmpty}</p>
-            <Link href="/" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 font-semibold text-panel">
+            <Link href={path("/")} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 font-semibold text-panel">
               <MagnifyingGlassIcon size={16} aria-hidden /> {t.freeEmptyCta}
             </Link>
           </div>

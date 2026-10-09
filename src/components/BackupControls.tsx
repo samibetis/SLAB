@@ -4,14 +4,15 @@ import { DownloadSimpleIcon, UploadSimpleIcon } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { backupFileName, parseBackup } from "@/lib/backup";
 import { exportAll, importAll } from "@/lib/backup-store";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 
 const btn =
   "inline-flex min-h-10 items-center gap-2 rounded-xl bg-soft px-3.5 text-[13.5px] font-semibold transition-[background-color,transform] duration-150 hover:bg-line/60 active:scale-[0.97] disabled:opacity-50";
 
 // Exportar / importar la copia de seguridad (álbumes, portafolio y precios puestos a mano).
 export function BackupControls({ className = "" }: { className?: string }) {
-  const t = es.backup;
+  const { t: dict } = useI18n();
+  const t = dict.backup;
   const file = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);

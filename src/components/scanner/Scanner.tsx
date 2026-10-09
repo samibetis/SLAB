@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { metaLine } from "@/lib/cards/format";
 import type { Card } from "@/lib/cards/types";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { cropFromImage, cropFromVideo, region } from "@/lib/scan/image";
 import { readCard, scanQueries, type ScanQuery, type ScanReading } from "@/lib/scan/parse";
 
@@ -46,7 +46,8 @@ async function searchFirst(queries: ScanQuery[], signal: AbortSignal): Promise<{
 }
 
 export function Scanner() {
-  const t = es.scanner;
+  const { t: dict, path } = useI18n();
+  const t = dict.scanner;
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -198,7 +199,7 @@ export function Scanner() {
       /* sin almacenamiento: se abre la carta sin la captura */
     }
     stopCamera();
-    router.push(`/?card=${encodeURIComponent(c.id)}`);
+    router.push(path(`/?card=${encodeURIComponent(c.id)}`));
   }
 
   function reset() {
@@ -477,7 +478,8 @@ export function Scanner() {
 // Marco guía con la proporción de una carta: oscurece lo de fuera y marca dónde están el nombre y el
 // código. Mientras se lee, una línea de luz recorre la carta.
 function Guide({ frameRef, scanning }: { frameRef: React.RefObject<HTMLDivElement | null>; scanning: boolean }) {
-  const t = es.scanner;
+  const { t: dict } = useI18n();
+  const t = dict.scanner;
   return (
     <div className="pointer-events-none absolute inset-0 grid place-items-center">
       <div
@@ -510,7 +512,8 @@ function Guide({ frameRef, scanning }: { frameRef: React.RefObject<HTMLDivElemen
 // Lo que se ha leído, para que se entienda por qué salen esos resultados. El código solo se enseña si
 // coincidió con una colección real (los demás candidatos del OCR suelen ser ruido).
 function Reading({ reading, code, viaAi }: { reading: ScanReading | null; code: string | null; viaAi: boolean }) {
-  const t = es.scanner;
+  const { t: dict } = useI18n();
+  const t = dict.scanner;
   const items = reading
     ? ([
         [t.readCode, code],

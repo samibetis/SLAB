@@ -1,14 +1,15 @@
 "use client";
 
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { usePrices } from "./PriceContext";
 
 // Botón "Importar CSV" de la sección Cómo funciona.
 export function CsvButton() {
+  const { t: dict } = useI18n();
   const { pickCsv } = usePrices();
   return (
     <button type="button" className="btn" onClick={pickCsv}>
-      {es.how.importCsv}
+      {dict.how.importCsv}
     </button>
   );
 }

@@ -1,12 +1,13 @@
 "use client";
 
 import { PRESETS, type Preset } from "@/lib/collection/versions";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 
 // Tipo de master set: qué cuenta para completarlo. Se elige al crearlo y se puede cambiar después
 // (las cartas marcadas no se pierden: solo cambia cómo se cuentan).
 export function TrackingPicker({ value, onChange, compact = false }: { value: Preset; onChange: (p: Preset) => void; compact?: boolean }) {
-  const t = es.collection;
+  const { t: dict } = useI18n();
+  const t = dict.collection;
   const keys = Object.keys(PRESETS) as Preset[];
   return (
     <fieldset>

@@ -4,6 +4,7 @@ import type { CardSummary } from "@/lib/cards/types";
 import type { FoilMode } from "@/lib/cards/variants";
 import { GRADERS, bgsSubgrades, gradeOption, labelColors, type GraderId } from "@/lib/grading/companies";
 import { es } from "@/lib/i18n/es";
+import type { Dict } from "@/lib/i18n";
 
 // Motor del visor 3D. Es three.js "a pelo", sin React: el componente solo lo monta, le pasa estado
 // (carta, versión, nota, funda, escaneo) y lo destruye. Así se puede ampliar sin tocar la interfaz.
@@ -45,7 +46,6 @@ export interface CardViewer {
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const cssVar = (v: string) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const langName = (l?: string) => (l && es.viewer.languages[l]) || l || "";
 const isUnlimited = (e?: string) => !!e && /^unlimited$/i.test(e);
 
 // Medidas de la carta en unidades de escena (proporción real 63 x 88 mm) y de su canto.
@@ -138,7 +138,9 @@ const GLARE_FRAG = `
     #include <colorspace_fragment>
   }`;
 
-export function createCardViewer(stage: HTMLElement, fontFamily: string): CardViewer {
+// `texts`: textos del visor en el idioma de la página (los que se dibujan en la carta y en la etiqueta).
+export function createCardViewer(stage: HTMLElement, fontFamily: string, texts: Dict["viewer"] = es.viewer): CardViewer {
+  const langName = (l?: string) => (l && texts.languages[l]) || l || "";
   // Móvil o pantalla táctil: menos resolución y sin reflejos de entorno, para no penalizar.
   const lowPower = matchMedia("(pointer: coarse)").matches || Math.min(screen.width, screen.height) < 600;
 
@@ -334,7 +336,7 @@ export function createCardViewer(stage: HTMLElement, fontFamily: string): CardVi
       g.addColorStop(0, ty[0]); g.addColorStop(1, ty[1]);
       x.fillStyle = g; x.fill();
       x.fillStyle = ty[2]; x.textAlign = "left"; x.font = "700 44px " + fontFamily;
-      fitText(x, cur ? cur.name : es.viewer.noCard, 62, 96, 470);
+      fitText(x, cur ? cur.name : texts.noCard, 62, 96, 470);
       x.font = "600 24px " + fontFamily; x.textAlign = "right";
       x.fillText(cur?.number ?? "", W - 62, 94);
       x.textAlign = "left";
@@ -355,7 +357,7 @@ export function createCardViewer(stage: HTMLElement, fontFamily: string): CardVi
       x.restore();
       x.fillStyle = "#E9D58F"; x.fillRect(ax + 20, ay + ah + 18, aw - 40, 34);
       x.fillStyle = "#3A2E0A"; x.font = "italic 600 20px " + fontFamily; x.textAlign = "center";
-      x.fillText(cur ? [cur.rarity, cur.year].filter(Boolean).join(", ") : es.viewer.noCardSub, W / 2, ay + ah + 42);
+      x.fillText(cur ? [cur.rarity, cur.year].filter(Boolean).join(", ") : texts.noCardSub, W / 2, ay + ah + 42);
       x.textAlign = "left";
       x.fillStyle = "rgba(0,0,0,.13)";
       ([[0, 1], [1, 0.8], [2, 0.9], [4, 0.66], [5, 0.84]] as const).forEach(([i, w]) => {
@@ -459,7 +461,7 @@ export function createCardViewer(stage: HTMLElement, fontFamily: string): CardVi
     // Datos de la carta
     const top = band ? 34 : 0;
     x.fillStyle = st.ink; x.font = "700 46px " + fontFamily;
-    fitText(x, cur ? cur.name : es.viewer.noLabel, 44, top + 112, 600);
+    fitText(x, cur ? cur.name : texts.noLabel, 44, top + 112, 600);
     x.fillStyle = st.sub; x.font = "500 32px " + fontFamily;
     fitText(x, cur ? [cur.year, cur.set].filter(Boolean).join(" ") : "", 44, top + 160, 600);
     x.font = "500 32px " + fontFamily;
@@ -478,7 +480,7 @@ export function createCardViewer(stage: HTMLElement, fontFamily: string): CardVi
     // BGS: las cuatro subnotas en una tira inferior
     if (G.subgrades) {
       const subs = bgsSubgrades(opt.value);
-      const names = es.viewer.subgrades;
+      const names = texts.subgrades;
       x.font = "600 21px " + fontFamily; x.fillStyle = st.sub; x.textAlign = "center";
       const cellW = (W - 88) / 4;
       subs.forEach((v, i) => x.fillText(`${names[i]} ${v}`, 44 + cellW * (i + 0.5), H - 34));

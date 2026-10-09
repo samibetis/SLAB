@@ -4,12 +4,13 @@ import { CircleNotchIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { metaLine } from "@/lib/cards/format";
 import type { Card } from "@/lib/cards/types";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 
 // Buscador compacto para elegir la carta de un slab dentro del portafolio (mismo endpoint que el de la
 // portada, sin tocar la carta del visor).
 export function CardPicker({ onPick }: { onPick: (c: Card) => void }) {
-  const t = es.portfolio;
+  const { t: dict } = useI18n();
+  const t = dict.portfolio;
   const [q, setQ] = useState("");
   const [cards, setCards] = useState<Card[] | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");

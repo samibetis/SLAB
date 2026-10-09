@@ -4,9 +4,8 @@ import { CheckIcon, PlusIcon, XIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
 import { useId, useState } from "react";
 import { gradeOption } from "@/lib/grading/companies";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { parseAmount, today } from "@/lib/portfolio/logic";
-import { dayLong, money } from "@/lib/prices/format";
 import { gradeByKey, gradeKey } from "@/lib/prices/grades";
 import { useCard } from "../CardContext";
 import { SupportNote } from "../SupportNote";
@@ -18,7 +17,8 @@ const field =
 // "Tus precios": el usuario apunta lo que vale la carta en cada nota (sin API de pago no hay otra forma
 // de tener precios gradeados). Al lado, por qué es así y cómo apoyar el proyecto.
 export function ManualPrices() {
-  const t = es.manual;
+  const { t: dict, f: fmt, lang } = useI18n();
+  const t = dict.manual;
   const { card } = useCard();
   const p = usePrices();
   const id = useId();
@@ -35,7 +35,7 @@ export function ManualPrices() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amount = parseAmount(price);
+    const amount = parseAmount(price, lang);
     const errs = {
       price: amount == null || !(amount > 0) ? t.invalidPrice : undefined,
       date: !/^\d{4}-\d{2}-\d{2}$/.test(date) || date > today() ? t.invalidDate : undefined,
@@ -129,7 +129,7 @@ export function ManualPrices() {
                 <AnimatePresence initial={false}>
                   {list.map((m) => {
                     const k = gradeKey(m.grader, m.grade);
-                    const what = `${label(k)} ${dayLong(m.date)}`;
+                    const what = `${label(k)} ${fmt.dayLong(m.date)}`;
                     return (
                       <motion.li
                         key={m.id}
@@ -141,9 +141,9 @@ export function ManualPrices() {
                         className="flex items-center gap-3 border-t border-line py-2.5 text-[14px] first:border-t-0"
                       >
                         <span className="w-[76px] shrink-0 font-semibold">{label(k)}</span>
-                        <span className="w-[88px] shrink-0 text-right font-semibold tabular-nums">{money(m.price, m.currency)}</span>
+                        <span className="w-[88px] shrink-0 text-right font-semibold tabular-nums">{fmt.money(m.price, m.currency)}</span>
                         <span className="min-w-0 flex-1 truncate text-muted">
-                          {dayLong(m.date)}
+                          {fmt.dayLong(m.date)}
                           {m.note ? ` · ${m.note}` : ""}
                         </span>
                         <button

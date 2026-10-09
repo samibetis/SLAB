@@ -2,13 +2,17 @@ import type { Metadata } from "next";
 import { CollectionHome } from "@/components/collection/CollectionHome";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { es } from "@/lib/i18n/es";
+import { langOf, localeMeta } from "@/lib/i18n/seo";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: es.collection.metaTitle, description: es.collection.metaDescription };
+export async function generateMetadata({ params }: PageProps<"/[lang]/coleccion">): Promise<Metadata> {
+  const { lang, t } = await langOf(params);
+  return { title: t.collection.metaTitle, description: t.collection.metaDescription, ...localeMeta(lang, "/coleccion") };
+}
 
 // Colección: la página es de servidor; los álbumes viven en el navegador (componente cliente).
-export default function CollectionPage() {
-  const t = es.collection;
+export default async function CollectionPage() {
+  const t = (await getI18n()).t.collection;
   return (
     <>
       <div className="bg-[radial-gradient(70%_60%_at_25%_20%,var(--stage-a),var(--stage-b)_85%)]">

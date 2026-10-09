@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { Scanner } from "@/components/scanner/Scanner";
 import { SiteHeader } from "@/components/SiteHeader";
-import { es } from "@/lib/i18n/es";
+import { langOf, localeMeta } from "@/lib/i18n/seo";
+import { getI18n } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: es.scanner.metaTitle,
-  description: es.scanner.metaDescription,
-};
+export async function generateMetadata({ params }: PageProps<"/[lang]/escaner">): Promise<Metadata> {
+  const { lang, t } = await langOf(params);
+  return { title: t.scanner.metaTitle, description: t.scanner.metaDescription, ...localeMeta(lang, "/escaner") };
+}
 
 // Escáner de cartas: la página es de servidor; la cámara y el OCR viven en el componente cliente.
-export default function ScannerPage() {
-  const t = es.scanner;
+export default async function ScannerPage() {
+  const t = (await getI18n()).t.scanner;
   return (
     <>
       <div className="bg-[radial-gradient(70%_60%_at_30%_30%,var(--stage-a),var(--stage-b)_85%)]">

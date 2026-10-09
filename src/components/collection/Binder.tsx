@@ -4,7 +4,7 @@ import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { paginate } from "@/lib/collection/logic";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { EmptyPocket } from "./Pocket";
 
 // Carpeta en 3D. Se numeran "huecos": el 0 es la portada interior y del 1 en adelante, las páginas de
@@ -60,7 +60,8 @@ export function Binder<T>({
   renderItem: (item: T) => ReactNode;
   cover: ReactNode;
 }) {
-  const t = es.collection;
+  const { t: dict } = useI18n();
+  const t = dict.collection;
   const reduce = useReducedMotion();
   const narrow = useNarrow();
   const pages = paginate(items);

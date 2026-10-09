@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { metaLine, variantLabel } from "@/lib/cards/format";
 import { newId, toAlbumCard } from "@/lib/collection/logic";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { portfolioStore } from "@/lib/portfolio/store";
 import { useCard } from "../CardContext";
 import { usePrices } from "../prices/PriceContext";
@@ -17,7 +17,8 @@ import { saveSlabValue } from "./slabValue";
 // "Añadir al portafolio" en la ficha de la carta. Arranca con la empresa, la nota y la versión que
 // tienes puestas en el visor: lo que ves en la funda es lo que añades.
 export function AddToPortfolio() {
-  const t = es.portfolio;
+  const { t: dict, path } = useI18n();
+  const t = dict.portfolio;
   const { card } = useCard();
   const { variants, variant, grader, gradeId } = usePrices();
   const [open, setOpen] = useState(false);
@@ -41,7 +42,7 @@ export function AddToPortfolio() {
             <span className="inline-flex items-center gap-1.5 text-up">
               <CheckIcon size={15} weight="bold" aria-hidden /> {t.added}
             </span>
-            <Link href="/portafolio" className="inline-flex items-center gap-1 underline underline-offset-4">
+            <Link href={path("/portafolio")} className="inline-flex items-center gap-1 underline underline-offset-4">
               {t.see} <ArrowRightIcon size={13} aria-hidden />
             </Link>
           </motion.span>

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { BACK_FILES, BACK_INSET, backFor } from "@/lib/cards/back";
 import type { CardLanguage, CardSummary } from "@/lib/cards/types";
 import type { FoilMode } from "@/lib/cards/variants";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { createCardViewer, type CardViewer as Engine } from "@/lib/viewer/engine";
 
 export interface LightboxCard extends CardSummary {
@@ -30,6 +30,7 @@ function loadImage(src: string, cors: boolean) {
 // El mismo motor 3D del visor principal, sin funda ni controles: la carta sola, para mirarla de cerca
 // dentro de otra página (Top 10). Se gira arrastrando, como en la portada.
 export default function LightboxViewer({ card }: { card: LightboxCard }) {
+  const { t: dict } = useI18n();
   const stageRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const [noWebgl, setNoWebgl] = useState(false);
@@ -40,7 +41,7 @@ export default function LightboxViewer({ card }: { card: LightboxCard }) {
     const family = (getComputedStyle(document.documentElement).getPropertyValue("--font-archivo").trim() || "Archivo") + ", Arial, sans-serif";
     let engine: Engine;
     try {
-      engine = createCardViewer(stage, family);
+      engine = createCardViewer(stage, family, dict.viewer);
     } catch {
       queueMicrotask(() => setNoWebgl(true));
       return;
@@ -51,7 +52,7 @@ export default function LightboxViewer({ card }: { card: LightboxCard }) {
       engine.dispose();
       engineRef.current = null;
     };
-  }, []);
+  }, [dict.viewer]);
 
   // Carta nueva (al abrir o al pasar a la siguiente): plantilla al instante, luego imagen, reverso y brillo
   useEffect(() => {
@@ -74,12 +75,12 @@ export default function LightboxViewer({ card }: { card: LightboxCard }) {
     };
   }, [card]);
 
-  if (noWebgl) return <p className="grid h-full place-items-center p-6 text-center text-[14px] text-muted">{es.viewer.noWebgl}</p>;
+  if (noWebgl) return <p className="grid h-full place-items-center p-6 text-center text-[14px] text-muted">{dict.viewer.noWebgl}</p>;
   return (
     <div
       ref={stageRef}
       tabIndex={0}
-      aria-label={es.viewer.stageLabel}
+      aria-label={dict.viewer.stageLabel}
       className="h-full w-full cursor-grab touch-pan-y outline-none active:cursor-grabbing [&_canvas]:block [&_canvas]:h-full [&_canvas]:w-full"
     />
   );

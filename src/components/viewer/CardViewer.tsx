@@ -2,7 +2,7 @@
 
 import { CaretDownIcon, CertificateIcon, CrosshairIcon, ShieldCheckIcon, SparkleIcon, StampIcon, UploadSimpleIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { createCardViewer, type CardViewer as Engine } from "@/lib/viewer/engine";
 import { BACK_FILES, BACK_INSET, backFor } from "@/lib/cards/back";
 import { variantEdition, versionOnlyLabel } from "@/lib/cards/format";
@@ -40,7 +40,8 @@ const readFile = (file: File) =>
 // Componente cliente del visor: monta el motor three.js, lo sincroniza con la carta elegida y los
 // controles, y lo destruye. El escaneo del usuario entra por botón, Ctrl+V o arrastrando una imagen.
 export default function CardViewer() {
-  const t = es.viewer;
+  const { t: dict } = useI18n();
+  const t = dict.viewer;
   const { card } = useCard();
   const { variants, variant, setVariant, grader, setGrader, gradeId, setGradeId } = usePrices();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ export default function CardViewer() {
     const family = (getComputedStyle(document.documentElement).getPropertyValue("--font-archivo").trim() || "Archivo") + ", Arial, sans-serif";
     let engine: Engine;
     try {
-      engine = createCardViewer(stage, family);
+      engine = createCardViewer(stage, family, t);
     } catch {
       // sin WebGL el constructor lanza; se avisa en el siguiente tick (no dentro del cuerpo del efecto)
       queueMicrotask(() => setError(t.noWebgl));
@@ -77,7 +78,7 @@ export default function CardViewer() {
       engine.dispose();
       engineRef.current = null;
     };
-  }, [t.noWebgl]);
+  }, [t]);
 
   // Carta nueva: la plantilla se dibuja al instante (y se descarta el escaneo anterior).
   useEffect(() => {
@@ -318,7 +319,7 @@ export default function CardViewer() {
               const o = withVersion(variants, current, v);
               if (o) setVariant(o.key);
             }}
-            options={versionList.map((v) => ({ value: versionKey(v), label: versionOnlyLabel(v) }))}
+            options={versionList.map((v) => ({ value: versionKey(v), label: versionOnlyLabel(v, dict) }))}
           />
         )}
         <input

@@ -1,8 +1,8 @@
-import { es } from "@/lib/i18n/es";
+import { getI18n } from "@/lib/i18n/server";
 import s from "./Footer.module.css";
 
-export function Footer() {
-  const t = es.footer;
+export async function Footer() {
+  const t = (await getI18n()).t.footer;
   return (
     <footer className={s.foot}>
       <span>

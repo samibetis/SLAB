@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { AlbumView } from "@/components/collection/AlbumView";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
-import { es } from "@/lib/i18n/es";
+import { langOf } from "@/lib/i18n/seo";
 
-export const metadata: Metadata = { title: es.collection.metaTitle, robots: { index: false } };
+export async function generateMetadata({ params }: PageProps<"/[lang]/coleccion/[id]">): Promise<Metadata> {
+  const { t } = await langOf(params);
+  return { title: t.collection.metaTitle, robots: { index: false } };
+}
 
 // Un álbum. El id viene de la URL; el contenido se lee del navegador (no es indexable).
-export default async function AlbumPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AlbumPage({ params }: PageProps<"/[lang]/coleccion/[id]">) {
   const { id } = await params;
   return (
     <>

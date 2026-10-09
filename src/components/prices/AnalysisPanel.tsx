@@ -1,9 +1,8 @@
 "use client";
 
 import { useCard } from "../CardContext";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { changeMatrix, details, facts, slice } from "@/lib/prices/analyzer";
-import { money, num1, pct } from "@/lib/prices/format";
 import { gradeByKey } from "@/lib/prices/grades";
 import { RANGES } from "@/lib/prices/ranges";
 import { readingText } from "@/lib/prices/reading";
@@ -12,10 +11,11 @@ import s from "./Prices.module.css";
 
 // Intensidad del color según cuánto se movió (más de ±60 % = tope)
 function Pill({ v }: { v: number }) {
+  const { f: fmt } = useI18n();
   const a = Math.round(8 + Math.min(Math.abs(v) / 0.6, 1) * 30);
   return (
     <span className={s.pill} style={{ background: `color-mix(in srgb, var(${v >= 0 ? "--up" : "--down"}) ${a}%, transparent)` }}>
-      {pct(v)}
+      {fmt.pct(v)}
     </span>
   );
 }
@@ -27,16 +27,17 @@ const Grade = ({ k }: { k: string }) => {
 
 // Matriz grado x periodo, detalle del periodo elegido y lectura automática.
 export function AnalysisPanel() {
-  const t = es.analysis;
+  const { t: dict, f: fmt } = useI18n();
+  const t = dict.analysis;
   const { card } = useCard();
   const p = usePrices();
 
   if (p.status !== "ready" || !p.rows.length) {
-    return <p className="empty">{card && p.status === "loading" ? t.loading : card && p.status === "ready" ? es.prices.noPricesCsv : t.empty}</p>;
+    return <p className="empty">{card && p.status === "loading" ? t.loading : card && p.status === "ready" ? dict.prices.noPricesCsv : t.empty}</p>;
   }
 
   const KEYS = p.grades.map((g) => g.key);
-  const rangeName = es.prices.rangeNames[p.range];
+  const rangeName = dict.prices.rangeNames[p.range];
   const matrix = changeMatrix(p.rows, KEYS);
   const rows = slice(p.rows, p.range);
   const det = details(rows, KEYS);
@@ -51,7 +52,7 @@ export function AnalysisPanel() {
           <div className={s.tbl}>
             <table>
               <thead>
-                <tr><th>{c.grade}</th>{RANGES.map((r) => <th key={r.k}>{r.k}</th>)}</tr>
+                <tr><th>{c.grade}</th>{RANGES.map((r) => <th key={r.k}>{dict.prices.rangeShort[r.k]}</th>)}</tr>
               </thead>
               <tbody>
                 {KEYS.map((k) => (
@@ -83,12 +84,12 @@ export function AnalysisPanel() {
                     <td><Grade k={key} /></td>
                     {st ? (
                       <>
-                        <td>{money(st.last, p.currency)}</td>
-                        <td>{money(st.min, p.currency)}</td>
-                        <td>{money(st.max, p.currency)}</td>
-                        <td>±{num1(st.vol * 100)}%</td>
-                        <td className={st.dd < -0.001 ? "down" : ""}>{st.dd < -0.001 ? pct(st.dd) : "0%"}</td>
-                        <td>{vsRaw != null ? `${num1(vsRaw)}×` : "—"}</td>
+                        <td>{fmt.money(st.last, p.currency)}</td>
+                        <td>{fmt.money(st.min, p.currency)}</td>
+                        <td>{fmt.money(st.max, p.currency)}</td>
+                        <td>±{fmt.num1(st.vol * 100)}%</td>
+                        <td className={st.dd < -0.001 ? "down" : ""}>{st.dd < -0.001 ? fmt.pct(st.dd) : "0%"}</td>
+                        <td>{vsRaw != null ? `${fmt.num1(vsRaw)}×` : "—"}</td>
                       </>
                     ) : (
                       <td colSpan={6} className={s.na}>{t.noData}</td>
@@ -100,7 +101,7 @@ export function AnalysisPanel() {
           </div>
         </div>
       </div>
-      {f && <p className={s.read}>{readingText(f, rangeName, (k) => gradeByKey(k)?.label ?? k)}</p>}
+      {f && <p className={s.read}>{readingText(f, rangeName, (k) => gradeByKey(k)?.label ?? k, dict, fmt)}</p>}
     </>
   );
 }

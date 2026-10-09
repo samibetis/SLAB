@@ -4,14 +4,14 @@ import { ArrowRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { normName } from "@/lib/catalog/fallback-images";
-import { es } from "@/lib/i18n/es";
-import { money } from "@/lib/prices/format";
+import { useI18n } from "@/components/I18nProvider";
 import type { RankingSummary } from "@/lib/rankings/data";
 
 // Índice de colecciones: buscador (nombre o código) y la lista agrupada por año, con su carta más cara.
 // La lista llega entera del servidor (Google la ve completa); el filtro es solo en el navegador.
 export function RankingIndex({ sets }: { sets: RankingSummary[] }) {
-  const t = es.rankings;
+  const { t: dict, f: fmt, path } = useI18n();
+  const t = dict.rankings;
   const [q, setQ] = useState("");
   const shown = useMemo(() => {
     const n = normName(q);
@@ -47,15 +47,15 @@ export function RankingIndex({ sets }: { sets: RankingSummary[] }) {
 
       <div className="mt-10 flex flex-col gap-12">
         {years.map(([year, list]) => (
-          <section key={year} aria-labelledby={`y-${year}`} className="grid gap-4 md:grid-cols-[96px_minmax(0,1fr)] md:gap-8">
+          <section key={year} aria-labelledby={`y-${year}`} className="grid grid-cols-1 gap-4 md:grid-cols-[96px_minmax(0,1fr)] md:gap-8">
             <h2 id={`y-${year}`} className="text-[28px]! font-extrabold! tabular-nums text-muted md:sticky md:top-24 md:self-start">
               {year}
             </h2>
-            <ul className="grid gap-2.5 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {list.map((s) => (
                 <li key={s.key}>
                   <Link
-                    href={`/colecciones/${s.slug}`}
+                    href={path(`/colecciones/${s.slug}`)}
                     className="group flex min-h-[88px] items-center gap-4 rounded-2xl bg-panel p-3.5 pr-4 transition-[transform,background-color] duration-200 hover:-translate-y-0.5 active:scale-[0.99]"
                   >
                     <span className="grid h-[64px] w-[46px] shrink-0 place-items-center overflow-hidden rounded-[4px] bg-soft">
@@ -70,7 +70,7 @@ export function RankingIndex({ sets }: { sets: RankingSummary[] }) {
                         {s.code && <span className="font-semibold text-ink">{s.code}</span>}
                         {s.code && " · "}
                         {s.topName && s.topPrice != null
-                          ? `${t.topCard}: ${s.topName}, ${money(s.topPrice, s.currency ?? "USD")}`
+                          ? `${t.topCard}: ${s.topName}, ${fmt.money(s.topPrice, s.currency ?? "USD")}`
                           : s.scannedAt
                             ? t.noPrices // ya barrida, pero ninguna carta tiene precio de mercado
                             : t.pending}

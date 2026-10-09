@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { PortfolioView } from "@/components/portfolio/PortfolioView";
 import { SiteHeader } from "@/components/SiteHeader";
-import { es } from "@/lib/i18n/es";
+import { langOf, localeMeta } from "@/lib/i18n/seo";
 
-export const metadata: Metadata = { title: es.portfolio.metaTitle, description: es.portfolio.metaDescription };
+export async function generateMetadata({ params }: PageProps<"/[lang]/portafolio">): Promise<Metadata> {
+  const { lang, t } = await langOf(params);
+  return { title: t.portfolio.metaTitle, description: t.portfolio.metaDescription, ...localeMeta(lang, "/portafolio") };
+}
 
 // Portafolio de gradeadas: la página es de servidor; los slabs viven en el navegador (componente cliente).
 export default function PortfolioPage() {

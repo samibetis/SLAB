@@ -1,13 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 
 // Mientras llega three.js: la silueta de la funda con brillo de carga, del mismo tamaño que el visor,
 // para que la página no salte cuando aparece.
 function ViewerSkeleton() {
+  const { t: dict } = useI18n();
   return (
-    <div aria-busy aria-label={es.viewer.loading}>
+    <div aria-busy aria-label={dict.viewer.loading}>
       <div className="mx-auto grid aspect-[3/4] w-[min(100%,calc(78dvh*0.75))] place-items-center">
         <div className="flex aspect-[298/478] w-[66%] flex-col gap-[4%] rounded-2xl border border-line p-[4%]">
           <div className="skeleton h-[12%] w-full rounded-md" />

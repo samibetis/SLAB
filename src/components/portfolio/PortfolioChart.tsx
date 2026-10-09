@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import type { TimelinePoint } from "@/lib/portfolio/logic";
 import { xLabelIndexes, yScale } from "@/lib/prices/chart";
-import { money, moneyCompact, monthLong, monthShort, pct } from "@/lib/prices/format";
 
 const M = { l: 52, r: 12, t: 12, b: 28 };
 
 // Valor del portafolio (área) frente a lo pagado (línea discontinua), mes a mes. El hueco entre las
 // dos es la ganancia o la pérdida. Escala lineal desde 0 para no exagerar los movimientos.
 export function PortfolioChart({ points, currency }: { points: TimelinePoint[]; currency: string }) {
-  const t = es.portfolio;
+  const { t: dict, f: fmt } = useI18n();
+  const t = dict.portfolio;
   const gid = useId();
   const wrap = useRef<HTMLDivElement>(null);
   const [w, setW] = useState(640);
@@ -71,13 +71,13 @@ export function PortfolioChart({ points, currency }: { points: TimelinePoint[]; 
           <g key={v}>
             <line x1={M.l} x2={w - M.r} y1={y(v)} y2={y(v)} stroke="var(--line)" />
             <text x={M.l - 8} y={y(v) + 4} textAnchor="end" className="fill-muted text-[11px] tabular-nums">
-              {moneyCompact(v, currency)}
+              {fmt.moneyCompact(v, currency)}
             </text>
           </g>
         ))}
         {xLabelIndexes(n).map((i) => (
           <text key={i} x={x(i)} y={H - 8} textAnchor={n === 1 ? "middle" : i === 0 ? "start" : i === n - 1 ? "end" : "middle"} className="fill-muted text-[11px]">
-            {monthShort(points[i].t)}
+            {fmt.monthShort(points[i].t)}
           </text>
         ))}
         {/* key: al cambiar de periodo la línea se vuelve a dibujar */}
@@ -96,12 +96,12 @@ export function PortfolioChart({ points, currency }: { points: TimelinePoint[]; 
           className="pointer-events-none absolute top-2 z-10 min-w-[180px] rounded-xl bg-ink px-3 py-2.5 text-[12.5px] text-panel"
           style={{ left: `${(x(hover!) / w) * 100}%`, transform: `translateX(${hover! > n / 2 ? "calc(-100% - 12px)" : "12px"})` }}
         >
-          <strong className="mb-1 block font-semibold first-letter:uppercase">{monthLong(hp.t)}</strong>
-          <div className="flex justify-between gap-4"><span>{t.chartValue}</span><b className="tabular-nums">{money(hp.value, currency)}</b></div>
-          <div className="flex justify-between gap-4 opacity-75"><span>{t.chartCost}</span><span className="tabular-nums">{money(hp.cost, currency)}</span></div>
+          <strong className="mb-1 block font-semibold first-letter:uppercase">{fmt.monthLong(hp.t)}</strong>
+          <div className="flex justify-between gap-4"><span>{t.chartValue}</span><b className="tabular-nums">{fmt.money(hp.value, currency)}</b></div>
+          <div className="flex justify-between gap-4 opacity-75"><span>{t.chartCost}</span><span className="tabular-nums">{fmt.money(hp.cost, currency)}</span></div>
           <div className="mt-1 flex justify-between gap-4 border-t border-panel/20 pt-1">
             <span>{t.slabs(hp.count)}</span>
-            <span className="tabular-nums">{pct(hp.cost > 0 ? hp.value / hp.cost - 1 : null)}</span>
+            <span className="tabular-nums">{fmt.pct(hp.cost > 0 ? hp.value / hp.cost - 1 : null)}</span>
           </div>
         </div>
       )}

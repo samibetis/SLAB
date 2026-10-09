@@ -8,7 +8,7 @@ import { addCard, belongsTo, newId, toAlbumCard } from "@/lib/collection/logic";
 import { browserStore } from "@/lib/collection/store";
 import type { Album, SetCard } from "@/lib/collection/types";
 import { markVersion, ownedKeys } from "@/lib/collection/versions";
-import { es } from "@/lib/i18n/es";
+import { useI18n } from "@/components/I18nProvider";
 import { useCard } from "../CardContext";
 import { usePrices } from "../prices/PriceContext";
 import { useAlbums } from "./useAlbums";
@@ -17,7 +17,8 @@ import { useAlbums } from "./useAlbums";
 // En un master set marca la versión que tienes puesta en el visor (todas comparten bolsillo); en un
 // álbum libre, esa versión entra como bolsillo propio.
 export function AddToAlbum() {
-  const t = es.collection;
+  const { t: dict } = useI18n();
+  const t = dict.collection;
   const { card } = useCard();
   const { variant, variants } = usePrices();
   const { albums } = useAlbums();
