@@ -5,8 +5,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { es } from "@/lib/i18n/es";
 import { rankingIndex } from "@/lib/rankings/data";
 
-// Se regenera como mucho cada hora (el barrido es semanal; esto solo recoge lo que vaya terminando).
-export const revalidate = 3600;
+// Se regenera como mucho cada 10 minutos: recoge pronto lo que vaya terminando el barrido.
+export const revalidate = 600;
 
 export const metadata: Metadata = {
   title: es.rankings.metaTitle,

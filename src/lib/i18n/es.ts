@@ -17,6 +17,7 @@ export const es = {
     noResults: "No encuentro ninguna colección con ese nombre o código.",
     topCard: "La más cara",
     pending: "Calculando: vuelve en unos días",
+    noPrices: "Sin precio de mercado todavía",
     count: (n: number) => `${n} ${n === 1 ? "colección" : "colecciones"}`,
     // ficha
     setTitle: (name: string, code: string | null) => `Las 10 cartas más caras de ${name}${code ? ` (${code})` : ""}`,

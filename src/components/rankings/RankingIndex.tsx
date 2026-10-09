@@ -69,7 +69,11 @@ export function RankingIndex({ sets }: { sets: RankingSummary[] }) {
                       <span className="block truncate text-[13px] text-muted">
                         {s.code && <span className="font-semibold text-ink">{s.code}</span>}
                         {s.code && " · "}
-                        {s.topName && s.topPrice != null ? `${t.topCard}: ${s.topName}, ${money(s.topPrice, s.currency ?? "USD")}` : t.pending}
+                        {s.topName && s.topPrice != null
+                          ? `${t.topCard}: ${s.topName}, ${money(s.topPrice, s.currency ?? "USD")}`
+                          : s.scannedAt
+                            ? t.noPrices // ya barrida, pero ninguna carta tiene precio de mercado
+                            : t.pending}
                       </span>
                     </span>
                     <ArrowRightIcon size={16} className="shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden />
