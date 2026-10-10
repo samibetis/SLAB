@@ -16,7 +16,8 @@ const archivo = Archivo({
 });
 
 // Layout raíz de cada idioma: /es (sin prefijo en la dirección, ver src/proxy.ts) y /en.
-export const dynamicParams = false;
+// Sin `dynamicParams = false`: se heredaría a las páginas de debajo y las colecciones del Top 10 (que se
+// generan en su primera visita) darían 404 en producción. Un idioma que no existe ya da 404 abajo (isLang).
 export const generateStaticParams = () => LANGS.map((lang) => ({ lang }));
 
 export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Promise<Metadata> {

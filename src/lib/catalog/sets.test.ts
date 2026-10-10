@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findSetToken, looksLikeCode, matchSets } from "./sets";
+import { findSetToken, isPocketSet, looksLikeCode, matchSets } from "./sets";
 import type { SetInfo } from "./types";
 
 const set = (id: string, name: string, code: string | null, language: "EN" | "JP" = "EN"): SetInfo => ({
@@ -73,5 +73,14 @@ describe("findSetToken", () => {
   it("sin código, nada: las palabras normales no se confunden", () => {
     expect(findSetToken(["charizard", "base", "set"], ALL)).toBeNull();
     expect(findSetToken(["umbreon", "ex"], ALL)).toBeNull(); // "ex" en minúsculas no cuenta
+  });
+});
+
+describe("isPocketSet", () => {
+  it("las de TCG Pocket (ids en mayúscula) sí", () => {
+    for (const id of ["A1", "A1a", "A2b", "B2a", "P-A"]) expect(isPocketSet({ id, language: "EN" })).toBe(true);
+  });
+  it("las físicas no, aunque se parezcan (Generations es g1)", () => {
+    for (const id of ["g1", "base1", "sv04.5", "ex1", "me05", "swsh12.5gg", "30th-c"]) expect(isPocketSet({ id, language: "EN" })).toBe(false);
   });
 });
