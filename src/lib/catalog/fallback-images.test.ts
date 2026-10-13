@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { directImages, findTheirSet, matchImages, normName, pickSet, type TheirCard } from "./fallback-images";
+import { directImages, findTheirSet, scrydexCandidates, matchImages, normName, pickSet, type TheirCard } from "./fallback-images";
 
 const img = (id: string) => ({ small: `https://img/${id}/small`, large: `https://img/${id}/large` });
 const theirs = (id: string, name: string, number: string): TheirCard => ({ id, name, number, images: img(id) });
@@ -89,7 +89,18 @@ describe("directImages", () => {
     const n = directImages("en-sm3.5", [{ id: "en-sm3.5-001", localId: "001" }])!;
     expect(n.get("en-sm3.5-001")?.small).toBe("https://images.pokemontcg.io/sm35/1.png");
   });
-  it("las colecciones que no están en la tabla siguen por la API", () => {
-    expect(directImages("en-cel25cc", [{ id: "x", localId: "CC001" }])).toBeNull();
+  it("las reediciones, con su tabla carta a carta (allí llevan el número de la original)", () => {
+    const m = directImages("en-cel25cc", [{ id: "x", localId: "CC003" }, { id: "y", localId: "CC999" }])!;
+    expect(m.get("x")?.small).toBe("https://images.pokemontcg.io/cel25c/15_A1.png");
+    expect(m.has("y")).toBe(false);
+    expect(directImages("en-30th-c", [{ id: "z", localId: "022" }])!.get("z")?.large).toBe("https://images.scrydex.com/pokemon/me55c-106p/large");
+  });
+  it("las que no están en ninguna tabla siguen por la API", () => {
+    expect(directImages("en-sv03.5", [{ id: "x", localId: "001" }])).toBeNull();
+    expect(scrydexCandidates("en-sv03.5", [{ id: "x", localId: "001" }])).toBeNull();
+  });
+  it("Scrydex: mismo número sin ceros delante", () => {
+    expect(scrydexCandidates("en-mep", [{ id: "x", localId: "057" }])!.get("x")?.large).toBe("https://images.scrydex.com/pokemon/mep-57/large");
+    expect(scrydexCandidates("en-ecard2", [{ id: "h", localId: "H01" }])!.get("h")?.large).toBe("https://images.scrydex.com/pokemon/ecard2-H1/large");
   });
 });

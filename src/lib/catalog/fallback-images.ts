@@ -1,4 +1,4 @@
-import { getJson } from "./http";
+import { getJson, mapLimit } from "./http";
 
 // Respaldo de imágenes: TCGdex no tiene imágenes de unas 70 colecciones físicas. Unas son recién salidas
 // (30th Classic Collection) y otras antiguas: Shining Legends, Dragon Majesty, las Trainer Gallery, Shiny
@@ -90,11 +90,17 @@ export function matchImages(ours: { id: string; name: string; localId: string }[
   return out;
 }
 
-// Colecciones de TCGdex sin imágenes cuya numeración es la misma en pokemontcg.io: la imagen se construye
-// directamente en su CDN (images.pokemontcg.io/<su colección>/<número>.png), sin pasar por su API, que
-// falla a menudo. Comprobado carta a carta (primera, del medio y última) en octubre de 2026. Las que tienen
-// otra numeración (reediciones como Celebrations Classic Collection) o aún no están allí siguen por la API.
-const IMG = "https://images.pokemontcg.io";
+// Imágenes construidas directamente en un CDN, sin pasar por la API de pokemontcg.io (que falla a menudo
+// con 500/502). Tres tablas, comprobadas carta a carta (primera, del medio y última) en octubre de 2026:
+//  - DIRECT_SETS: colecciones con la misma numeración en pokemontcg.io -> images.pokemontcg.io/<id>/<n>.png
+//  - SCRYDEX_SETS: las que pokemontcg.io no tiene pero Scrydex (su CDN nuevo) sí -> images.scrydex.com/pokemon/<id>-<n>/large.
+//    Si Scrydex no tiene una carta concreta responde 200 con una imagen genérica (un reverso), así que cada
+//    carta se comprueba con una petición HEAD (ver scrydexImages) antes de usarla.
+//  - REPRINTS: reediciones con otra numeración (allí llevan el número de la carta original): tabla fija
+//    carta a carta, emparejada por nombre.
+// Las que no están en ninguna tabla siguen por la API (findTheirSet + matchImages).
+const PTCG = "https://images.pokemontcg.io";
+const SCRYDEX = "https://images.scrydex.com/pokemon";
 export const DIRECT_SETS: Record<string, string> = {
   "en-bog": "bp", "en-tk-ex-latia": "tk1a", "en-tk-ex-latio": "tk1b", "en-tk-ex-p": "tk2a", "en-tk-ex-m": "tk2b",
   "en-exu": "ex10", "en-pop6": "pop6", "en-pl2": "pl2", "en-hgssp": "hsp", "en-bwp": "bwp", "en-xyp": "xyp", "en-xy8": "xy8",
@@ -103,17 +109,62 @@ export const DIRECT_SETS: Record<string, string> = {
   "en-swshp": "swshp", "en-swsh4.5sv": "swsh45sv", "en-cel25": "cel25", "en-swsh12.5gg": "swsh12pt5gg",
   "en-swsh9tg": "swsh9tg", "en-swsh10tg": "swsh10tg", "en-swsh11tg": "swsh11tg", "en-swsh12tg": "swsh12tg",
 };
+export const SCRYDEX_SETS: Record<string, string> = {
+  // kits de entrenador
+  "en-tk-dp-l": "tk3a", "en-tk-dp-m": "tk3b", "en-tk-hs-r": "tk4a", "en-tk-hs-g": "tk4b", "en-tk-bw-e": "tk5a", "en-tk-bw-z": "tk5b",
+  "en-tk-xy-sy": "tk6a", "en-tk-xy-n": "tk6b", "en-tk-xy-b": "tk7a", "en-tk-xy-w": "tk7b", "en-tk-xy-latia": "tk8a", "en-tk-xy-latio": "tk8b",
+  "en-tk-xy-su": "tk9a", "en-tk-xy-p": "tk9b", "en-tk-sm-l": "tk10a", "en-tk-sm-r": "tk10b",
+  // McDonald's
+  "en-2014xy": "mcd14", "en-2015xy": "mcd15", "en-2017sm": "mcd17", "en-2018sm": "mcd18", "en-2023sv": "mcd23", "en-2024sv": "mcd24",
+  // energías, promos y e-Card (en estas últimas faltan algunas cartas sueltas)
+  "en-sve": "sve", "en-mee": "mee", "en-svp": "svp", "en-mep": "mep", "en-ecard2": "ecard2", "en-ecard3": "ecard3",
+};
+export const REPRINTS: Record<string, { cdn: "ptcg" | "scrydex"; set: string; numbers: Record<string, string> }> = {
+  "en-cel25cc": {
+    cdn: "ptcg", set: "cel25c",
+    numbers: {
+      CC001: "2_A", CC002: "4_A", CC003: "15_A1", CC004: "73_A", CC005: "8_A", CC006: "15_A2", CC007: "15_A3", CC008: "24_A",
+      CC009: "20_A", CC010: "66_A", CC011: "9_A", CC012: "86_A", CC013: "88_A", CC014: "93_A", CC015: "17_A", CC016: "15_A4",
+      CC017: "109_A", CC018: "145_A", CC019: "107_A", CC020: "113_A", CC021: "114_A", CC022: "54_A", CC023: "97_A", CC024: "76_A", CC025: "60_A",
+    },
+  },
+  "en-30th-c": {
+    cdn: "scrydex", set: "me55c",
+    numbers: {
+      "001": "4", "002": "5", "003": "11", "004": "11g", "005": "18", "006": "19", "007": "25", "008": "33", "009": "41", "010": "43",
+      "011": "47", "012": "50", "013": "57", "014": "58", "015": "69", "016": "85", "017": "89", "018": "94", "019": "100", "020": "99",
+      "021": "101", "022": "106p", "023": "106m", "024": "106", "025": "108", "026": "114", "027": "123", "028": "138", "029": "149", "030": "203",
+    },
+  },
+};
 
 // "001" -> "1" (sus números no llevan ceros delante); "GG01", "SV001", "SM125" se quedan igual.
+const theirNumber = (localId: string) => encodeURIComponent(localId.replace(/^0+(?=\d)/, ""));
+const ptcgImages = (set: string, n: string): CardImages => ({ small: `${PTCG}/${set}/${n}.png`, large: `${PTCG}/${set}/${n}_hires.png`, pokemontcgId: `${set}-${n}` });
+const scrydexUrls = (set: string, n: string): CardImages => ({ small: `${SCRYDEX}/${set}-${n}/small`, large: `${SCRYDEX}/${set}-${n}/large`, pokemontcgId: `${set}-${n}` });
+
+// Las de DIRECT_SETS y REPRINTS (sin red). null si la colección no está en esas tablas.
 export function directImages(setKey: string, ours: { id: string; localId: string }[]): Map<string, CardImages> | null {
-  const theirs = DIRECT_SETS[setKey];
-  if (!theirs) return null;
-  return new Map(
-    ours.map((o) => {
-      const n = encodeURIComponent(o.localId.replace(/^0+(?=\d)/, ""));
-      return [o.id, { small: `${IMG}/${theirs}/${n}.png`, large: `${IMG}/${theirs}/${n}_hires.png`, pokemontcgId: `${theirs}-${n}` }];
-    }),
-  );
+  const direct = DIRECT_SETS[setKey];
+  if (direct) return new Map(ours.map((o) => [o.id, ptcgImages(direct, theirNumber(o.localId))]));
+  const re = REPRINTS[setKey];
+  if (re) {
+    const out = new Map<string, CardImages>();
+    for (const o of ours) {
+      const n = re.numbers[o.localId];
+      if (n) out.set(o.id, (re.cdn === "ptcg" ? ptcgImages : scrydexUrls)(re.set, encodeURIComponent(n)));
+    }
+    return out;
+  }
+  return null;
+}
+
+// Las de SCRYDEX_SETS, sin comprobar (la comprobación necesita red: ver scrydexImages). null si no está.
+// En Scrydex los números tampoco llevan ceros tras las letras: "H01" -> "H1" (las holo de Aquapolis y Skyridge).
+const scrydexNumber = (localId: string) => encodeURIComponent(localId.replace(/^([A-Za-z]*)0+(?=\d)/, "$1"));
+export function scrydexCandidates(setKey: string, ours: { id: string; localId: string }[]): Map<string, CardImages> | null {
+  const set = SCRYDEX_SETS[setKey];
+  return set ? new Map(ours.map((o) => [o.id, scrydexUrls(set, scrydexNumber(o.localId))])) : null;
 }
 
 // ---- Servidor ----
@@ -132,13 +183,34 @@ export function imagesForSet(
   if (direct) return Promise.resolve(direct);
   const hit = memo.get(set.key);
   if (hit && Date.now() - hit.at < OK_TTL) return hit.value;
-  const value = load(set, ours).catch((e) => {
+  const candidates = scrydexCandidates(set.key, ours);
+  const value = (candidates ? scrydexImages(candidates) : load(set, ours)).catch((e) => {
     console.warn("[fallback-images]", set.key, e instanceof Error ? e.message : e);
     memo.set(set.key, { at: Date.now() - OK_TTL + FAIL_TTL, value: Promise.resolve(new Map()) });
     return new Map<string, CardImages>();
   });
   memo.set(set.key, { at: Date.now(), value });
   return value;
+}
+
+// Scrydex responde 200 también cuando no tiene la carta, con una imagen genérica (un reverso) que pesa
+// siempre lo mismo. Una petición HEAD por carta (solo cabeceras, sin descargar la imagen) basta para
+// descartarla. Las que fallan por red también se descartan: mejor sin imagen que con una rota.
+// (Sin "identity" el CDN responde comprimido y sin Content-Length; por eso también se mira su ETag, que es fijo.)
+const SCRYDEX_PLACEHOLDER_BYTES = "186316";
+const SCRYDEX_PLACEHOLDER_ETAG = "cfl2loWl84E8tUjrC-Q-I0D0J";
+async function scrydexImages(candidates: Map<string, CardImages>): Promise<Map<string, CardImages>> {
+  const entries = [...candidates];
+  const real = await mapLimit(entries, 8, async ([, img]) => {
+    try {
+      const r = await fetch(img.large, { method: "HEAD", headers: { "Accept-Encoding": "identity" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+      const placeholder = r.headers.get("content-length") === SCRYDEX_PLACEHOLDER_BYTES || !!r.headers.get("etag")?.includes(SCRYDEX_PLACEHOLDER_ETAG);
+      return r.ok && !placeholder;
+    } catch {
+      return false;
+    }
+  });
+  return new Map(entries.filter((_, i) => real[i]));
 }
 
 // pokemontcg.io responde a menudo 500/502 al primer intento: hasta 3 intentos, con una pausa corta.
